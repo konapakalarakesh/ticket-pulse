@@ -26,7 +26,11 @@
             --radius: 14px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
@@ -36,105 +40,208 @@
             line-height: 1.5;
         }
 
-        /* ─── AUTH GATE ─── */
+        /* ═══ AUTH GATE ═══ */
         #authGate {
-            position: fixed; inset: 0; z-index: 9999;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
             background: var(--bg-primary);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            gap: 24px; text-align: center; padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            text-align: center;
+            transition: opacity 0.3s;
         }
-        #authGate.hidden { display: none; }
-        .auth-icon { font-size: 3.5rem; }
-        .auth-title { font-size: 1.6rem; font-weight: 700; }
-        .auth-sub { color: var(--text-dim); max-width: 440px; font-size: 0.95rem; }
-        .auth-btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 14px 28px; border-radius: 10px;
-            background: linear-gradient(135deg, var(--accent), #7c3aed);
-            color: #fff; font-weight: 600; font-size: 1rem;
-            text-decoration: none; border: none; cursor: pointer;
-            transition: transform .2s, box-shadow .2s;
-        }
-        .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
-        .auth-skip {
-            background: none; border: 1px solid var(--border);
-            color: var(--text-dim); padding: 10px 20px; border-radius: 8px;
-            cursor: pointer; font-size: 0.85rem; margin-top: 8px;
-        }
-        .auth-skip:hover { border-color: var(--accent); color: var(--text); }
-        .spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ─── HEADER ─── */
+        #authGate.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .auth-msg {
+            color: var(--text-dim);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        /* ═══ HEADER ═══ */
         .header {
-            position: sticky; top: 0; z-index: 100;
-            background: rgba(10, 10, 26, 0.85);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 26, 0.88);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             padding: 16px 32px;
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .brand { display: flex; align-items: center; gap: 12px; }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .brand-icon {
-            width: 36px; height: 36px; border-radius: 9px;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
             background: linear-gradient(135deg, var(--accent), #7c3aed);
-            display: grid; place-items: center; font-size: 18px;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
         }
+
         .brand h1 {
-            font-size: 1.25rem; font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 700;
             background: linear-gradient(90deg, var(--accent), #a78bfa);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .brand small { display: block; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.5px; }
-        .header-right { display: flex; align-items: center; gap: 14px; }
+
+        .brand small {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
         .live-badge {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 0.75rem; color: var(--green);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--green);
         }
+
         .live-badge::before {
-            content: ''; width: 7px; height: 7px; background: var(--green);
-            border-radius: 50%; animation: pulse 2s infinite;
+            content: '';
+            width: 7px;
+            height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
         }
-        @keyframes pulse { 50% { opacity: .4; transform: scale(1.4); } }
-        #refreshTime { font-size: 0.72rem; color: var(--text-dim); }
+
+        @keyframes pulse {
+            50% { opacity: 0.4; transform: scale(1.4); }
+        }
+
+        #refreshTime {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+        }
+
         .btn {
-            padding: 9px 18px; border-radius: 8px; font-size: 0.82rem;
-            font-weight: 600; cursor: pointer; border: none;
-            display: inline-flex; align-items: center; gap: 6px;
-            transition: all .2s;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
         }
-        .btn-accent { background: linear-gradient(135deg, var(--accent), #7c3aed); color: #fff; }
-        .btn-accent:hover { box-shadow: 0 4px 20px var(--accent-glow); transform: translateY(-1px); }
-        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
-        .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
 
-        /* ─── MAIN ─── */
-        .main { max-width: 1520px; margin: 0 auto; padding: 28px 32px; }
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            color: #fff;
+        }
 
-        /* ─── KPI ROW ─── */
+        .btn-accent:hover {
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        /* ═══ MAIN ═══ */
+        .main {
+            max-width: 1520px;
+            margin: 0 auto;
+            padding: 28px 32px;
+        }
+
+        /* ═══ KPI ROW ═══ */
         .kpi-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 16px; margin-bottom: 28px;
+            gap: 16px;
+            margin-bottom: 28px;
         }
+
         .kpi {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 20px;
-            position: relative; overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
+
         .kpi::after {
-            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 3px;
         }
+
         .kpi:nth-child(1)::after { background: var(--accent); }
         .kpi:nth-child(2)::after { background: var(--green); }
         .kpi:nth-child(3)::after { background: var(--yellow); }
         .kpi:nth-child(4)::after { background: var(--purple); }
         .kpi:nth-child(5)::after { background: var(--orange); }
         .kpi:nth-child(6)::after { background: var(--red); }
-        .kpi-label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
-        .kpi-value { font-size: 1.7rem; font-weight: 700; }
+
+        .kpi-label {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+        }
+
         .kpi:nth-child(1) .kpi-value { color: var(--accent); }
         .kpi:nth-child(2) .kpi-value { color: var(--green); }
         .kpi:nth-child(3) .kpi-value { color: var(--yellow); }
@@ -142,141 +249,399 @@
         .kpi:nth-child(5) .kpi-value { color: var(--orange); }
         .kpi:nth-child(6) .kpi-value { color: var(--red); }
 
-        /* ─── TABS ─── */
+        /* ═══ TABS ═══ */
         .tabs {
-            display: flex; gap: 2px; background: var(--bg-secondary);
-            border-radius: 10px; padding: 4px; margin-bottom: 24px;
+            display: flex;
+            gap: 2px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 24px;
             overflow-x: auto;
         }
+
         .tab {
-            padding: 10px 18px; border-radius: 8px;
-            font-size: 0.85rem; font-weight: 500;
-            color: var(--text-dim); cursor: pointer;
-            white-space: nowrap; transition: all .2s;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
         }
-        .tab.active { background: var(--bg-card); color: var(--accent); }
-        .tab:hover:not(.active) { color: var(--text); }
-        .panel { display: none; }
-        .panel.active { display: block; }
 
-        /* ─── SECTION ─── */
+        .tab.active {
+            background: var(--bg-card);
+            color: var(--accent);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* ═══ CARD ═══ */
         .card {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
         }
-        .card-title {
-            font-size: 1.05rem; font-weight: 600; margin-bottom: 16px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .card-title span { font-size: 1.2rem; }
 
-        /* ─── QUICK CHECKER ─── */
-        .checker-area { display: flex; gap: 12px; flex-wrap: wrap; }
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title span {
+            font-size: 1.2rem;
+        }
+
+        /* ═══ CHECKER ═══ */
+        .checker-area {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         .checker-area textarea {
-            flex: 1; min-width: 260px; min-height: 90px;
-            background: var(--bg-secondary); border: 1px solid var(--border);
-            border-radius: 10px; padding: 14px; resize: vertical;
-            color: var(--text); font-family: 'JetBrains Mono', 'Courier New', monospace;
+            flex: 1;
+            min-width: 260px;
+            min-height: 100px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            resize: vertical;
+            color: var(--text);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
             font-size: 0.85rem;
         }
-        .checker-area textarea:focus { outline: none; border-color: var(--accent); }
-        .checker-area textarea::placeholder { color: var(--text-dim); opacity: .6; }
-        .checker-btns { display: flex; flex-direction: column; gap: 8px; }
 
-        /* ─── PROGRESS ─── */
-        .progress-wrap { margin: 12px 0; }
-        .progress-bar { height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width .4s; }
-        .progress-text { font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; }
+        .checker-area textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
 
-        /* ─── TABLE ─── */
-        .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+        .checker-area textarea::placeholder {
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+
+        .checker-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* ═══ PROGRESS ═══ */
+        .progress-wrap {
+            margin: 14px 0;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--green));
+            transition: width 0.4s;
+        }
+
+        .progress-text {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* ═══ TABLE ═══ */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+
         th {
-            background: var(--bg-secondary); padding: 12px 14px;
-            text-align: left; font-size: 0.72rem;
-            text-transform: uppercase; letter-spacing: .5px;
-            color: var(--text-dim); font-weight: 600;
-            position: sticky; top: 0; z-index: 2;
+            background: var(--bg-secondary);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
-        td { padding: 10px 14px; border-top: 1px solid var(--border); }
-        tr:hover td { background: var(--bg-hover); }
+
+        td {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+
         .badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 10px; border-radius: 20px;
-            font-size: 0.75rem; font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
-        .badge-resolved { background: rgba(0, 230, 138, .12); color: var(--green); }
-        .badge-open { background: rgba(251, 191, 36, .12); color: var(--yellow); }
-        .badge-pending { background: rgba(167, 139, 250, .12); color: var(--purple); }
-        .badge-unknown { background: rgba(136, 146, 176, .12); color: var(--text-dim); }
-        .badge-checking { background: rgba(0, 212, 255, .08); color: var(--accent); }
 
-        .link-tt { color: var(--accent); text-decoration: none; font-family: monospace; }
-        .link-tt:hover { text-decoration: underline; }
+        .badge-resolved { background: rgba(0, 230, 138, 0.12); color: var(--green); }
+        .badge-open { background: rgba(251, 191, 36, 0.12); color: var(--yellow); }
+        .badge-pending { background: rgba(167, 139, 250, 0.12); color: var(--purple); }
+        .badge-unknown { background: rgba(136, 146, 176, 0.12); color: var(--text-dim); }
+        .badge-checking { background: rgba(0, 212, 255, 0.08); color: var(--accent); }
+        .badge-error { background: rgba(255, 87, 87, 0.12); color: var(--red); }
 
-        /* ─── CHARTS ─── */
-        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
-        .chart-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-        .chart-box h3 { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 12px; }
-        canvas { max-height: 280px; }
+        .link-tt {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: monospace;
+        }
 
-        /* ─── AUDITOR GRID ─── */
-        .auditor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+        .link-tt:hover {
+            text-decoration: underline;
+        }
+
+        /* ═══ CHARTS ═══ */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .chart-box h3 {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        canvas {
+            max-height: 280px;
+        }
+
+        /* ═══ AUDITOR GRID ═══ */
+        .auditor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
         .auditor-card {
-            background: var(--bg-secondary); border: 1px solid var(--border);
-            border-radius: 12px; padding: 18px; transition: all .2s;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.2s;
         }
-        .auditor-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .auditor-name { font-weight: 600; font-size: 0.95rem; }
-        .auditor-process { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px; }
-        .auditor-metrics { display: flex; gap: 10px; }
+
+        .auditor-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .auditor-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .auditor-process {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .auditor-metrics {
+            display: flex;
+            gap: 10px;
+        }
+
         .auditor-metric {
-            flex: 1; text-align: center; padding: 8px 4px;
-            background: var(--bg-primary); border-radius: 8px;
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            background: var(--bg-primary);
+            border-radius: 8px;
         }
-        .auditor-metric-val { font-size: 1.1rem; font-weight: 700; }
-        .auditor-metric-lbl { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
-        .auditor-bar { margin-top: 10px; }
-        .auditor-bar-track { height: 5px; background: var(--bg-primary); border-radius: 3px; }
-        .auditor-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--accent)); }
-        .auditor-bar-label { font-size: 0.7rem; color: var(--text-dim); text-align: right; margin-top: 3px; }
 
-        /* ─── CONFIG ─── */
-        .config-field { margin-bottom: 16px; }
-        .config-field label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; }
-        .config-field input {
-            width: 100%; padding: 12px; background: var(--bg-secondary);
-            border: 1px solid var(--border); border-radius: 8px;
-            color: var(--text); font-size: 0.88rem;
+        .auditor-metric-val {
+            font-size: 1.1rem;
+            font-weight: 700;
         }
-        .config-field input:focus { outline: none; border-color: var(--accent); }
 
-        /* ─── TOAST ─── */
-        .toast {
-            position: fixed; bottom: 24px; right: 24px;
-            background: var(--bg-card); border: 1px solid var(--accent);
-            border-radius: 10px; padding: 14px 22px;
-            box-shadow: 0 8px 32px rgba(0, 212, 255, .15);
-            font-size: 0.88rem; z-index: 2000;
-            transform: translateY(80px); opacity: 0;
-            transition: all .35s ease;
+        .auditor-metric-lbl {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
 
-        /* ─── FILTER BAR ─── */
+        .auditor-bar {
+            margin-top: 10px;
+        }
+
+        .auditor-bar-track {
+            height: 5px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+        }
+
+        .auditor-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--green), var(--accent));
+        }
+
+        .auditor-bar-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-align: right;
+            margin-top: 3px;
+        }
+
+        /* ═══ FILTER BAR ═══ */
         .filter-bar {
-            display: flex; gap: 10px; flex-wrap: wrap;
-            margin-bottom: 16px; align-items: center;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
         }
-        .filter-bar select, .filter-bar input {
-            padding: 8px 12px; background: var(--bg-secondary);
-            border: 1px solid var(--border); border-radius: 8px;
-            color: var(--text); font-size: 0.82rem;
-        }
-        .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--accent); }
 
-        /* ─── RESPONSIVE ─── */
+        .filter-bar select,
+        .filter-bar input {
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.82rem;
+        }
+
+        .filter-bar select:focus,
+        .filter-bar input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* ═══ CONFIG ═══ */
+        .config-field {
+            margin-bottom: 16px;
+        }
+
+        .config-field label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        .config-field input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.88rem;
+        }
+
+        .config-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* ═══ TOAST ═══ */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 14px 22px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+            font-size: 0.88rem;
+            z-index: 2000;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.35s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ═══ SUMMARY CARDS ═══ */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+        }
+
+        .summary-card h4 {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .summary-card p {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* ═══ RESPONSIVE ═══ */
         @media (max-width: 768px) {
             .header { padding: 14px 16px; }
             .main { padding: 16px; }
@@ -288,29 +653,33 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     </style>
 </head>
 <body>
 
-<!-- ═══ AUTH GATE ═══ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- AUTH GATE — Non-blocking, auto-proceeds in 2 seconds max -->
+<!-- ═══════════════════════════════════════════════════════════ -->
 <div id="authGate">
     <div class="spinner"></div>
-    <div class="auth-title">Verifying Midway Session…</div>
-    <div class="auth-sub">Checking if your browser is authenticated with Amazon Midway. This dashboard requires corp network access.</div>
+    <p class="auth-msg">Connecting to corp network…</p>
 </div>
 
-<!-- ═══ HEADER ═══ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
 <header class="header">
     <div class="brand">
         <div class="brand-icon">⚡</div>
         <div>
             <h1>Ticket Pulse</h1>
-            <small>MBO MATCHING · AUDIT TT CONTROL TOWER</small>
+            <small>AUDIT TT CONTROL TOWER</small>
         </div>
     </div>
     <div class="header-right">
         <div>
-            <div class="live-badge">CONNECTED</div>
+            <div class="live-badge" id="connBadge">CONNECTED</div>
             <div id="refreshTime">Last refresh: —</div>
         </div>
         <button class="btn btn-ghost" onclick="exportCSV()">📥 Export</button>
@@ -318,20 +687,40 @@
     </div>
 </header>
 
-<!-- ═══ MAIN ═══ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MAIN CONTENT                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
 <main class="main">
 
-    <!-- KPI Row -->
+    <!-- ─── KPI Row ─── -->
     <div class="kpi-row">
-        <div class="kpi"><div class="kpi-label">Total Tickets</div><div class="kpi-value" id="kTotal">—</div></div>
-        <div class="kpi"><div class="kpi-label">Resolved / Closed</div><div class="kpi-value" id="kResolved">—</div></div>
-        <div class="kpi"><div class="kpi-label">Open / Assigned</div><div class="kpi-value" id="kOpen">—</div></div>
-        <div class="kpi"><div class="kpi-label">Pending</div><div class="kpi-value" id="kPending">—</div></div>
-        <div class="kpi"><div class="kpi-label">Auditors</div><div class="kpi-value" id="kAuditors">—</div></div>
-        <div class="kpi"><div class="kpi-label">Resolution %</div><div class="kpi-value" id="kRate">—</div></div>
+        <div class="kpi">
+            <div class="kpi-label">Total Tickets</div>
+            <div class="kpi-value" id="kTotal">—</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Resolved / Closed</div>
+            <div class="kpi-value" id="kResolved">—</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Open / Assigned</div>
+            <div class="kpi-value" id="kOpen">—</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Pending</div>
+            <div class="kpi-value" id="kPending">—</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Auditors</div>
+            <div class="kpi-value" id="kAuditors">—</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Resolution %</div>
+            <div class="kpi-value" id="kRate">—</div>
+        </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- ─── Tabs ─── -->
     <div class="tabs">
         <div class="tab active" data-tab="checker">🔍 Quick Check</div>
         <div class="tab" data-tab="analytics">📊 Analytics</div>
@@ -340,15 +729,17 @@
         <div class="tab" data-tab="settings">⚙️ Settings</div>
     </div>
 
-    <!-- ═══ PANEL: Quick Check ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PANEL: Quick Check                                      -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <div class="panel active" id="panel-checker">
         <div class="card">
             <div class="card-title"><span>⚡</span> Quick Ticket Status Check</div>
-            <p style="color:var(--text-dim);font-size:0.88rem;margin-bottom:14px;">
-                Paste Ticket IDs (one per line or comma-separated). The dashboard will fetch live status directly via your Midway session.
+            <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:14px;">
+                Paste Ticket IDs below (one per line or comma-separated). Dashboard fetches live status directly using your Midway-authenticated browser session.
             </p>
             <div class="checker-area">
-                <textarea id="ttInput" placeholder="D209619666&#10;D492282767&#10;P473222076&#10;&#10;Or: D209619666, D492282767, P473222076"></textarea>
+                <textarea id="ttInput" placeholder="D209619666&#10;D492282767&#10;P473222076&#10;&#10;Or comma-separated: D209619666, D492282767, P473222076"></textarea>
                 <div class="checker-btns">
                     <button class="btn btn-accent" onclick="runQuickCheck()">⚡ Check Status</button>
                     <button class="btn btn-ghost" onclick="loadSheetIDs()">📥 Load from Sheet</button>
@@ -356,13 +747,19 @@
                 </div>
             </div>
             <div class="progress-wrap" id="checkProgress" style="display:none;">
-                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                </div>
                 <div class="progress-text" id="progressText">0 / 0 checked</div>
             </div>
         </div>
 
+        <!-- Quick Results -->
         <div class="card" id="quickResultsCard" style="display:none;">
-            <div class="card-title"><span>📋</span> Results <span id="resultCount" style="font-size:0.8rem;color:var(--text-dim);font-weight:400;"></span></div>
+            <div class="card-title">
+                <span>📋</span> Results
+                <span id="resultCount" style="font-size:0.8rem; color:var(--text-dim); font-weight:400;"></span>
+            </div>
             <div class="filter-bar">
                 <input type="text" id="resultSearch" placeholder="Search ticket ID..." oninput="filterResults()">
                 <select id="resultFilter" onchange="filterResults()">
@@ -370,40 +767,73 @@
                     <option value="resolved">Resolved / Closed</option>
                     <option value="open">Open / Assigned</option>
                     <option value="pending">Pending</option>
-                    <option value="unknown">Unknown</option>
+                    <option value="error">Error / Blocked</option>
                 </select>
             </div>
-            <div class="table-wrap" style="max-height:500px;overflow-y:auto;">
+            <div class="table-wrap" style="max-height:500px; overflow-y:auto;">
                 <table>
-                    <thead><tr><th>#</th><th>Ticket ID</th><th>Status</th><th>Severity</th><th>Checked At</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ticket ID</th>
+                            <th>Status</th>
+                            <th>Checked At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="quickResultsBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ═══ PANEL: Analytics ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PANEL: Analytics                                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-analytics">
         <div class="charts-grid">
-            <div class="chart-box"><h3>📊 Status Distribution</h3><canvas id="chartStatus"></canvas></div>
-            <div class="chart-box"><h3>📈 Tickets by Process</h3><canvas id="chartProcess"></canvas></div>
-            <div class="chart-box"><h3>🎯 Auditor Resolution Rate</h3><canvas id="chartAuditor"></canvas></div>
-            <div class="chart-box"><h3>📦 Bucket Distribution</h3><canvas id="chartBucket"></canvas></div>
+            <div class="chart-box">
+                <h3>📊 Status Distribution</h3>
+                <canvas id="chartStatus"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>📈 Tickets by Process</h3>
+                <canvas id="chartProcess"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>🎯 Top Auditors (Total vs Resolved)</h3>
+                <canvas id="chartAuditor"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>📦 Bucket Distribution</h3>
+                <canvas id="chartBucket"></canvas>
+            </div>
         </div>
 
-        <!-- Process Table -->
+        <!-- Process Breakdown Table -->
         <div class="card">
             <div class="card-title"><span>📋</span> Process Breakdown</div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>Process</th><th>Total TTs</th><th>Resolved</th><th>Open</th><th>Pending</th><th>Resolution %</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Process</th>
+                            <th>Total TTs</th>
+                            <th>Resolved</th>
+                            <th>Open</th>
+                            <th>Pending</th>
+                            <th>Resolution %</th>
+                        </tr>
+                    </thead>
                     <tbody id="processTableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ═══ PANEL: Auditors ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PANEL: Auditors                                         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-auditors">
         <div class="card">
             <div class="card-title"><span>👥</span> Auditor Performance Overview</div>
@@ -416,14 +846,20 @@
         </div>
     </div>
 
-    <!-- ═══ PANEL: All Tickets ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PANEL: All Tickets                                      -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-tickets">
         <div class="card">
             <div class="card-title"><span>📋</span> Full Ticket List</div>
             <div class="filter-bar">
                 <input type="text" id="ticketSearch" placeholder="Search ticket or auditor..." oninput="renderTicketTable()">
-                <select id="ticketProcessFilter" onchange="renderTicketTable()"><option value="all">All Processes</option></select>
-                <select id="ticketAuditorFilter" onchange="renderTicketTable()"><option value="all">All Auditors</option></select>
+                <select id="ticketProcessFilter" onchange="renderTicketTable()">
+                    <option value="all">All Processes</option>
+                </select>
+                <select id="ticketAuditorFilter" onchange="renderTicketTable()">
+                    <option value="all">All Auditors</option>
+                </select>
                 <select id="ticketStatusFilter" onchange="renderTicketTable()">
                     <option value="all">All Statuses</option>
                     <option value="resolved">Resolved</option>
@@ -432,54 +868,85 @@
                     <option value="unknown">Not Checked</option>
                 </select>
             </div>
-            <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+            <div class="table-wrap" style="max-height:600px; overflow-y:auto;">
                 <table>
-                    <thead><tr><th>#</th><th>Ticket ID</th><th>Auditor</th><th>Process</th><th>Bucket</th><th>Status</th><th>Checked</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ticket ID</th>
+                            <th>Auditor</th>
+                            <th>Process</th>
+                            <th>Bucket</th>
+                            <th>Status</th>
+                            <th>Checked</th>
+                        </tr>
+                    </thead>
                     <tbody id="ticketTableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ═══ PANEL: Settings ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PANEL: Settings                                         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-settings">
         <div class="card">
             <div class="card-title"><span>⚙️</span> Dashboard Configuration</div>
             <div class="config-field">
                 <label>Audit Excel URL (GitHub raw link to your .xlsx file)</label>
-                <input type="text" id="cfgAuditUrl" placeholder="https://raw.githubusercontent.com/you/repo/main/Audits.xlsx">
+                <input type="text" id="cfgAuditUrl" placeholder="https://raw.githubusercontent.com/your-username/your-repo/main/Audits.xlsx">
             </div>
             <div class="config-field">
                 <label>Ticket Base URL</label>
                 <input type="text" value="https://t.corp.amazon.com/" disabled>
             </div>
             <div class="config-field">
-                <label>Auto-Refresh (minutes)</label>
+                <label>Auto-Refresh Interval (minutes)</label>
                 <input type="number" id="cfgInterval" value="15" min="5" max="120">
             </div>
-            <button class="btn btn-accent" onclick="saveConfig()">💾 Save & Reload</button>
+            <div class="config-field">
+                <label>Status Cache Duration (minutes)</label>
+                <input type="number" id="cfgCache" value="30" min="5" max="120">
+            </div>
+            <button class="btn btn-accent" onclick="saveConfig()" style="margin-top:8px;">💾 Save & Reload Data</button>
         </div>
 
         <div class="card">
-            <div class="card-title"><span>ℹ️</span> How It Works</div>
-            <ul style="color:var(--text-dim);font-size:0.88rem;padding-left:20px;line-height:2;">
-                <li><strong>Auth:</strong> Uses your browser's existing Midway session — no passwords stored.</li>
-                <li><strong>Ticket Check:</strong> Fetches t.corp ticket page using your credentials (same-session fetch).</li>
-                <li><strong>Audit Data:</strong> Pulls your .xlsx from GitHub (same-origin or raw link).</li>
-                <li><strong>Hosting:</strong> Pure static HTML — push to GitHub Pages and share with your team.</li>
-                <li><strong>Cache:</strong> Status results are cached in localStorage for 30 min to avoid re-fetching.</li>
+            <div class="card-title"><span>ℹ️</span> How This Dashboard Works</div>
+            <ul style="color:var(--text-dim); font-size:0.88rem; padding-left:20px; line-height:2.4;">
+                <li><strong>Authentication:</strong> Uses your browser's existing Midway session cookies — nothing stored externally.</li>
+                <li><strong>Ticket Status Fetch:</strong> Calls t.corp.amazon.com directly using your authenticated browser session (same-origin credentials).</li>
+                <li><strong>Audit Data:</strong> Loads your Audits.xlsx from GitHub (raw URL). Expects columns: <code>Date</code>, <code>Process</code>, <code>Ticket ID</code>, <code>Auditor</code>, <code>Bucket</code>.</li>
+                <li><strong>Hosting:</strong> Pure static HTML — push to GitHub Pages, enable Pages, share the link.</li>
+                <li><strong>Caching:</strong> Status results cached in browser localStorage (default 30 min) to reduce redundant fetches.</li>
+                <li><strong>Privacy:</strong> All data processing happens in your browser. No external servers involved.</li>
             </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span>🚀</span> Setup Steps</div>
+            <ol style="color:var(--text-dim); font-size:0.88rem; padding-left:20px; line-height:2.4;">
+                <li>Create a GitHub repo and upload this <code>index.html</code> and your <code>Audits.xlsx</code></li>
+                <li>Go to repo Settings → Pages → Source: main branch → Save</li>
+                <li>Copy the raw URL of your Excel: <code>https://raw.githubusercontent.com/YOU/REPO/main/Audits.xlsx</code></li>
+                <li>Paste it in the "Audit Excel URL" field above and click Save</li>
+                <li>Share the GitHub Pages URL with your team</li>
+            </ol>
         </div>
     </div>
 
 </main>
 
-<!-- Toast -->
+<!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 <script>
 // ═══════════════════════════════════════════════════════════════
-// CONFIG
+// CONFIGURATION
 // ═══════════════════════════════════════════════════════════════
 const DEFAULTS = {
     AUDIT_URL: './Audits.xlsx',
@@ -494,52 +961,64 @@ let statusCache = {};
 let charts = {};
 
 // ═══════════════════════════════════════════════════════════════
-// INIT
+// INITIALIZATION
 // ═══════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     loadConfig();
-    checkMidway();
+    fastAuthCheck();
     setupTabs();
 });
 
 // ═══════════════════════════════════════════════════════════════
-// MIDWAY AUTH
+// MIDWAY AUTH — NON-BLOCKING (max 2 second wait, then proceed)
+// Since you're already authenticated in the same browser,
+// this won't block. Auth is verified on actual ticket fetch.
 // ═══════════════════════════════════════════════════════════════
-async function checkMidway() {
-    const gate = document.getElementById('authGate');
-    try {
-        // Try to reach t.corp — if Midway session exists, browser sends cookies
-        const r = await fetch(CONFIG.TICKET_BASE, { method: 'HEAD', credentials: 'include', mode: 'no-cors' });
-        // no-cors always resolves (opaque response) — if we get here, network is reachable
+function fastAuthCheck() {
+    var gate = document.getElementById('authGate');
+
+    // Maximum 2 second wait — then auto-proceed regardless
+    var autoProc = setTimeout(function() {
+        gate.classList.add('hidden');
+        toast('⚡ Dashboard ready');
+        boot();
+    }, 2000);
+
+    // Try quick ping to t.corp (non-blocking, no-cors)
+    fetch(CONFIG.TICKET_BASE, {
+        method: 'HEAD',
+        credentials: 'include',
+        mode: 'no-cors'
+    }).then(function() {
+        clearTimeout(autoProc);
         gate.classList.add('hidden');
         toast('✅ Midway session active');
         boot();
-    } catch (e) {
-        // Network error — might be off-corp
-        gate.innerHTML = `
-            <div class="auth-icon">🔐</div>
-            <div class="auth-title">Midway Authentication Required</div>
-            <div class="auth-sub">You need to be on the Amazon corp network and signed into Midway. Please authenticate first.</div>
-            <a href="https://midway-auth.amazon.com/SSO" target="_blank" class="auth-btn">🔑 Open Midway</a>
-            <button class="auth-skip" onclick="document.getElementById('authGate').classList.add('hidden');boot();">⏭ Skip & Continue (offline mode)</button>
-        `;
-    }
+    }).catch(function() {
+        // Timeout will handle it — do nothing
+    });
 }
 
 function boot() {
     loadCacheFromStorage();
     loadAuditSheet();
-    setInterval(() => refreshAll(), CONFIG.REFRESH_MIN * 60000);
+    // Auto-refresh timer
+    setInterval(function() {
+        refreshAll();
+    }, CONFIG.REFRESH_MIN * 60 * 1000);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TABS
+// TAB SWITCHING
 // ═══════════════════════════════════════════════════════════════
 function setupTabs() {
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            // Remove active from all
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+            // Add active to clicked
             tab.classList.add('active');
             document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
         });
@@ -547,169 +1026,228 @@ function setupTabs() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// LOAD AUDIT EXCEL
+// LOAD AUDIT EXCEL FROM GITHUB
 // ═══════════════════════════════════════════════════════════════
 async function loadAuditSheet() {
     try {
-        const url = CONFIG.AUDIT_URL;
-        const resp = await fetch(url, { cache: 'no-cache' });
+        var url = CONFIG.AUDIT_URL;
+        if (!url || url.includes('YOUR_') || url.includes('your-username')) {
+            toast('⚙️ Configure Audit Excel URL in Settings tab');
+            return;
+        }
+
+        var resp = await fetch(url, { cache: 'no-cache' });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const buf = await resp.arrayBuffer();
-        const wb = XLSX.read(buf, { type: 'array', cellDates: true });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws);
 
-        auditData = rows.map(r => ({
-            date: r['Date'] || '',
-            process: r['Process'] || '',
-            ticketId: (r['Ticket ID'] || '').toString().trim(),
-            auditor: r['Auditor'] || '',
-            bucket: r['Bucket'] || ''
-        })).filter(r => r.ticketId);
+        var buf = await resp.arrayBuffer();
+        var wb = XLSX.read(buf, { type: 'array', cellDates: true });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(ws);
 
-        toast(`📊 Loaded ${auditData.length} tickets from audit sheet`);
+        auditData = rows.map(function(r) {
+            return {
+                date: r['Date'] || '',
+                process: r['Process'] || '',
+                ticketId: (r['Ticket ID'] || r['TT ID'] || r['TT'] || '').toString().trim(),
+                auditor: r['Auditor'] || '',
+                bucket: r['Bucket'] || ''
+            };
+        }).filter(function(r) { return r.ticketId.length > 0; });
+
+        toast('📊 Loaded ' + auditData.length + ' tickets from audit sheet');
         populateFilters();
         renderAll();
+
     } catch (e) {
-        console.warn('Sheet load failed:', e);
-        toast('⚠️ Could not load audit sheet — configure URL in Settings');
+        console.warn('Sheet load error:', e);
+        toast('⚠️ Could not load audit sheet — check Settings');
     }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TICKET STATUS FETCHING
+// FETCH TICKET STATUS FROM t.corp
 // ═══════════════════════════════════════════════════════════════
 async function fetchStatus(ticketId) {
     ticketId = ticketId.trim();
     if (!ticketId) return null;
 
-    // Check cache
-    const cached = getCache(ticketId);
+    // Check cache first
+    var cached = getCache(ticketId);
     if (cached) return cached;
 
-    const url = CONFIG.TICKET_BASE + ticketId;
+    var url = CONFIG.TICKET_BASE + ticketId;
 
     try {
-        const resp = await fetch(url, { credentials: 'include' });
+        var resp = await fetch(url, { credentials: 'include' });
+
         if (!resp.ok) {
-            if (resp.status === 401 || resp.status === 403) return setCache(ticketId, { status: 'Auth Required', raw: '', ts: now() });
-            return setCache(ticketId, { status: 'Error', raw: 'HTTP ' + resp.status, ts: now() });
+            if (resp.status === 401 || resp.status === 403) {
+                return setCache(ticketId, { status: 'Auth Required', ts: Date.now() });
+            }
+            return setCache(ticketId, { status: 'Error (' + resp.status + ')', ts: Date.now() });
         }
-        const html = await resp.text();
-        return setCache(ticketId, parseStatus(html, ticketId));
+
+        var html = await resp.text();
+        var result = parseStatus(html);
+        return setCache(ticketId, result);
+
     } catch (e) {
-        // CORS or network error — try window.open approach
-        return setCache(ticketId, { status: 'Pending Check', raw: 'CORS - open manually', ts: now(), manualUrl: url });
+        // CORS error expected when hosted on different domain (GitHub Pages)
+        // Try iframe fallback
+        return await iframeFetch(ticketId, url);
     }
 }
 
-function parseStatus(html, ticketId) {
-    const result = { status: 'Unknown', raw: '', severity: '', ts: now() };
+function parseStatus(html) {
+    var result = { status: 'Unknown', ts: Date.now() };
 
-    // Try regex patterns for t.corp status
-    const patterns = [
+    // Multiple regex patterns to catch t.corp status field
+    var patterns = [
         /["']status["']\s*:\s*["']([^"']+)["']/i,
         /Status<\/[^>]+>\s*<[^>]+>([^<]+)/i,
-        /ticket[_-]?status["\s:]+([A-Za-z\s]+)/i,
         /<span[^>]*class="[^"]*status[^"]*"[^>]*>([^<]+)/i,
         /data-status=["']([^"']+)["']/i,
-        /Resolved|Closed|Open|Assigned|Pending|Work\s*In\s*Progress|Cancelled/i
+        /ticket[_\-]?status[":\s]+([A-Za-z\s]+)/i,
+        /"resolution"\s*:\s*"([^"]+)"/i,
+        /state["']\s*:\s*["']([^"']+)["']/i
     ];
 
-    for (const p of patterns) {
-        const m = html.match(p);
+    for (var i = 0; i < patterns.length; i++) {
+        var m = html.match(patterns[i]);
         if (m) {
-            result.raw = (m[1] || m[0]).trim();
-            result.status = normalize(result.raw);
-            break;
+            result.status = normalizeStatus((m[1] || m[0]).trim());
+            return result;
         }
     }
 
-    // Try severity
-    const sevMatch = html.match(/[Ss]everity["\s:]*(\d|SEV-?\d)/i);
-    if (sevMatch) result.severity = sevMatch[1];
+    // Last resort: look for known status keywords
+    var kwMatch = html.match(/\b(Resolved|Closed|Open|Assigned|Pending|Work In Progress|Cancelled|Deferred)\b/i);
+    if (kwMatch) {
+        result.status = normalizeStatus(kwMatch[1]);
+    }
 
     return result;
 }
 
-function normalize(s) {
-    const l = s.toLowerCase();
+async function iframeFetch(ticketId, url) {
+    return new Promise(function(resolve) {
+        var iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+
+        var timeout = setTimeout(function() {
+            cleanup();
+            resolve(setCache(ticketId, { status: 'CORS Blocked', ts: Date.now(), note: 'Open manually to verify' }));
+        }, 8000);
+
+        function cleanup() {
+            clearTimeout(timeout);
+            try { document.body.removeChild(iframe); } catch(e) {}
+        }
+
+        iframe.onload = function() {
+            try {
+                var doc = iframe.contentDocument || iframe.contentWindow.document;
+                var result = parseStatus(doc.documentElement.outerHTML);
+                cleanup();
+                resolve(setCache(ticketId, result));
+            } catch(e) {
+                // Cross-origin — can't read iframe content
+                cleanup();
+                resolve(setCache(ticketId, { status: 'CORS Blocked', ts: Date.now() }));
+            }
+        };
+
+        iframe.onerror = function() {
+            cleanup();
+            resolve(setCache(ticketId, { status: 'Error', ts: Date.now() }));
+        };
+
+        document.body.appendChild(iframe);
+    });
+}
+
+function normalizeStatus(s) {
+    var l = s.toLowerCase();
     if (/resolved|closed|complete|fixed|done/.test(l)) return 'Resolved';
-    if (/open|assigned|work.in.progress|wip|active/.test(l)) return 'Open';
+    if (/open|assigned|work.in.progress|wip|active|in progress/.test(l)) return 'Open';
     if (/pending|waiting|deferred/.test(l)) return 'Pending';
     if (/cancel/.test(l)) return 'Cancelled';
     return s || 'Unknown';
 }
 
 // ═══════════════════════════════════════════════════════════════
-// QUICK CHECK
+// QUICK CHECK FEATURE
 // ═══════════════════════════════════════════════════════════════
 async function runQuickCheck() {
-    const raw = document.getElementById('ttInput').value.trim();
-    if (!raw) return toast('⚠️ Paste some Ticket IDs first');
+    var raw = document.getElementById('ttInput').value.trim();
+    if (!raw) { toast('⚠️ Paste some Ticket IDs first'); return; }
 
-    const ids = raw.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean);
-    if (!ids.length) return toast('⚠️ No valid IDs found');
+    // Parse IDs — support newline, comma, space, tab separated
+    var ids = raw.split(/[\n,\s\t]+/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+    if (!ids.length) { toast('⚠️ No valid IDs found'); return; }
 
+    // Show progress
     document.getElementById('checkProgress').style.display = 'block';
     document.getElementById('quickResultsCard').style.display = 'block';
 
-    const tbody = document.getElementById('quickResultsBody');
-    tbody.innerHTML = ids.map((id, i) => `
-        <tr id="qr-${id}">
-            <td>${i + 1}</td>
-            <td><a href="${CONFIG.TICKET_BASE}${id}" target="_blank" class="link-tt">${id}</a></td>
-            <td><span class="badge badge-checking">⏳ Checking…</span></td>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-        </tr>
-    `).join('');
+    // Build initial table rows
+    var tbody = document.getElementById('quickResultsBody');
+    tbody.innerHTML = ids.map(function(id, i) {
+        return '<tr id="qr-' + id + '">' +
+            '<td>' + (i + 1) + '</td>' +
+            '<td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" class="link-tt">' + id + '</a></td>' +
+            '<td><span class="badge badge-checking">⏳ Checking…</span></td>' +
+            '<td>—</td>' +
+            '<td>—</td>' +
+            '</tr>';
+    }).join('');
 
-    let done = 0;
-    const total = ids.length;
-    const BATCH = 5;
+    // Fetch in batches of 5
+    var done = 0;
+    var total = ids.length;
+    var BATCH = 5;
 
-    for (let i = 0; i < total; i += BATCH) {
-        const batch = ids.slice(i, i + BATCH);
-        await Promise.all(batch.map(async id => {
-            const result = await fetchStatus(id);
+    for (var i = 0; i < total; i += BATCH) {
+        var batch = ids.slice(i, i + BATCH);
+        await Promise.all(batch.map(async function(id) {
+            var result = await fetchStatus(id);
             done++;
-            updateProgressBar(done, total);
+            // Update progress bar
+            var pct = Math.round((done / total) * 100);
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = done + ' / ' + total + ' checked';
+            // Update row
             updateQuickRow(id, result, ids.indexOf(id) + 1);
         }));
     }
 
-    document.getElementById('resultCount').textContent = `(${total} tickets)`;
-    toast(`✅ Checked ${total} ticket(s)`);
+    document.getElementById('resultCount').textContent = '(' + total + ' tickets)';
+    toast('✅ Checked ' + total + ' ticket(s)');
     renderKPIs();
 }
 
 function updateQuickRow(id, result, idx) {
-    const row = document.getElementById('qr-' + id);
+    var row = document.getElementById('qr-' + id);
     if (!row) return;
-    const bc = badgeClass(result.status);
-    row.innerHTML = `
-        <td>${idx}</td>
-        <td><a href="${CONFIG.TICKET_BASE}${id}" target="_blank" class="link-tt">${id}</a></td>
-        <td><span class="badge ${bc}">${statusIcon(result.status)} ${result.status}</span></td>
-        <td>${result.severity || '—'}</td>
-        <td>${result.ts ? new Date(result.ts).toLocaleTimeString() : '—'}</td>
-        <td><a href="${CONFIG.TICKET_BASE}${id}" target="_blank" style="color:var(--accent);font-size:0.8rem;">Open ↗</a></td>
-    `;
-}
 
-function updateProgressBar(done, total) {
-    const pct = Math.round((done / total) * 100);
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressText').textContent = `${done} / ${total} checked`;
+    var bc = badgeClass(result.status);
+    var icon = statusIcon(result.status);
+    var time = result.ts ? new Date(result.ts).toLocaleTimeString() : '—';
+
+    row.innerHTML =
+        '<td>' + idx + '</td>' +
+        '<td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" class="link-tt">' + id + '</a></td>' +
+        '<td><span class="badge ' + bc + '">' + icon + ' ' + result.status + '</span></td>' +
+        '<td>' + time + '</td>' +
+        '<td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" style="color:var(--accent);font-size:0.8rem;">Open ↗</a></td>';
 }
 
 function loadSheetIDs() {
-    if (!auditData.length) return toast('⚠️ Audit sheet not loaded yet');
-    const ids = auditData.map(r => r.ticketId).join('\n');
+    if (!auditData.length) { toast('⚠️ Audit sheet not loaded — configure in Settings'); return; }
+    var ids = auditData.map(function(r) { return r.ticketId; }).join('\n');
     document.getElementById('ttInput').value = ids;
-    toast(`📥 Loaded ${auditData.length} IDs from sheet`);
+    toast('📥 Loaded ' + auditData.length + ' IDs from audit sheet');
 }
 
 function clearChecker() {
@@ -719,23 +1257,24 @@ function clearChecker() {
 }
 
 function filterResults() {
-    const search = document.getElementById('resultSearch').value.toLowerCase();
-    const filter = document.getElementById('resultFilter').value;
-    document.querySelectorAll('#quickResultsBody tr').forEach(row => {
-        const id = row.cells[1]?.textContent.toLowerCase() || '';
-        const status = row.cells[2]?.textContent.toLowerCase() || '';
-        const matchSearch = !search || id.includes(search);
-        const matchFilter = filter === 'all' ||
+    var search = document.getElementById('resultSearch').value.toLowerCase();
+    var filter = document.getElementById('resultFilter').value;
+
+    document.querySelectorAll('#quickResultsBody tr').forEach(function(row) {
+        var id = (row.cells[1] ? row.cells[1].textContent : '').toLowerCase();
+        var status = (row.cells[2] ? row.cells[2].textContent : '').toLowerCase();
+        var matchSearch = !search || id.includes(search);
+        var matchFilter = filter === 'all' ||
             (filter === 'resolved' && /resolved|closed/.test(status)) ||
             (filter === 'open' && /open|assigned/.test(status)) ||
             (filter === 'pending' && /pending/.test(status)) ||
-            (filter === 'unknown' && /unknown|check|error/.test(status));
+            (filter === 'error' && /error|cors|auth|blocked/.test(status));
         row.style.display = (matchSearch && matchFilter) ? '' : 'none';
     });
 }
 
 // ═══════════════════════════════════════════════════════════════
-// RENDER ALL
+// RENDER ALL DASHBOARD COMPONENTS
 // ═══════════════════════════════════════════════════════════════
 function renderAll() {
     renderKPIs();
@@ -746,20 +1285,23 @@ function renderAll() {
     updateRefreshTime();
 }
 
+// ─── KPIs ───
 function renderKPIs() {
-    const total = auditData.length;
-    let resolved = 0, open = 0, pending = 0;
-    auditData.forEach(r => {
-        const c = statusCache[r.ticketId];
+    var total = auditData.length;
+    var resolved = 0, open = 0, pending = 0;
+
+    auditData.forEach(function(r) {
+        var c = statusCache[r.ticketId];
         if (!c) return;
-        const s = c.status.toLowerCase();
+        var s = c.status.toLowerCase();
         if (/resolved|closed/.test(s)) resolved++;
         else if (/open|assigned/.test(s)) open++;
         else if (/pending/.test(s)) pending++;
     });
-    const auditors = new Set(auditData.map(r => r.auditor)).size;
-    const checked = Object.keys(statusCache).length;
-    const rate = checked > 0 ? Math.round((resolved / checked) * 100) : 0;
+
+    var auditors = new Set(auditData.map(function(r) { return r.auditor; })).size;
+    var checked = Object.keys(statusCache).length;
+    var rate = checked > 0 ? Math.round((resolved / checked) * 100) : 0;
 
     document.getElementById('kTotal').textContent = total;
     document.getElementById('kResolved').textContent = resolved;
@@ -780,90 +1322,130 @@ function renderCharts() {
 }
 
 function renderStatusChart() {
-    const ctx = document.getElementById('chartStatus');
-    let r = 0, o = 0, p = 0, u = 0;
-    auditData.forEach(item => {
-        const c = statusCache[item.ticketId];
+    var ctx = document.getElementById('chartStatus');
+    var r = 0, o = 0, p = 0, u = 0;
+
+    auditData.forEach(function(item) {
+        var c = statusCache[item.ticketId];
         if (!c) { u++; return; }
-        const s = c.status.toLowerCase();
+        var s = c.status.toLowerCase();
         if (/resolved|closed/.test(s)) r++;
         else if (/open|assigned/.test(s)) o++;
         else if (/pending/.test(s)) p++;
         else u++;
     });
+
     if (charts.status) charts.status.destroy();
     charts.status = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Resolved', 'Open', 'Pending', 'Not Checked'],
-            datasets: [{ data: [r, o, p, u], backgroundColor: ['#00e68a', '#fbbf24', '#a78bfa', '#4b5563'], borderWidth: 0 }]
+            datasets: [{
+                data: [r, o, p, u],
+                backgroundColor: ['#00e68a', '#fbbf24', '#a78bfa', '#4b5563'],
+                borderWidth: 0
+            }]
         },
-        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#8892b0' } }
+            }
+        }
     });
 }
 
 function renderProcessChart() {
-    const ctx = document.getElementById('chartProcess');
-    const map = {};
-    auditData.forEach(r => { map[r.process] = (map[r.process] || 0) + 1; });
-    const labels = Object.keys(map);
-    const data = Object.values(map);
+    var ctx = document.getElementById('chartProcess');
+    var map = {};
+    auditData.forEach(function(r) {
+        if (r.process) map[r.process] = (map[r.process] || 0) + 1;
+    });
+
+    var labels = Object.keys(map);
+    var data = Object.values(map);
+
     if (charts.process) charts.process.destroy();
     charts.process = new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets: [{ label: 'Tickets', data, backgroundColor: '#00d4ff' }] },
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Tickets', data: data, backgroundColor: '#00d4ff' }]
+        },
         options: {
-            responsive: true, indexAxis: 'y',
-            scales: { x: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } }, y: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { display: false } } },
+            responsive: true,
+            indexAxis: 'y',
+            scales: {
+                x: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } },
+                y: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { display: false } }
+            },
             plugins: { legend: { display: false } }
         }
     });
 }
 
 function renderAuditorChart() {
-    const ctx = document.getElementById('chartAuditor');
-    const map = {};
-    auditData.forEach(r => {
+    var ctx = document.getElementById('chartAuditor');
+    var map = {};
+
+    auditData.forEach(function(r) {
         if (!map[r.auditor]) map[r.auditor] = { total: 0, resolved: 0 };
         map[r.auditor].total++;
-        const c = statusCache[r.ticketId];
+        var c = statusCache[r.ticketId];
         if (c && /resolved|closed/.test(c.status.toLowerCase())) map[r.auditor].resolved++;
     });
-    const sorted = Object.entries(map).sort((a, b) => b[1].total - a[1].total).slice(0, 15);
-    const labels = sorted.map(e => e[0]);
-    const totals = sorted.map(e => e[1].total);
-    const resolved = sorted.map(e => e[1].resolved);
+
+    // Sort by total tickets, take top 15
+    var sorted = Object.entries(map).sort(function(a, b) { return b[1].total - a[1].total; }).slice(0, 15);
+    var labels = sorted.map(function(e) { return e[0]; });
+    var totals = sorted.map(function(e) { return e[1].total; });
+    var resolved = sorted.map(function(e) { return e[1].resolved; });
 
     if (charts.auditor) charts.auditor.destroy();
     charts.auditor = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels,
+            labels: labels,
             datasets: [
-                { label: 'Total', data: totals, backgroundColor: 'rgba(0,212,255,.4)' },
+                { label: 'Total', data: totals, backgroundColor: 'rgba(0,212,255,0.4)' },
                 { label: 'Resolved', data: resolved, backgroundColor: '#00e68a' }
             ]
         },
         options: {
             responsive: true,
-            scales: { x: { ticks: { color: '#8892b0', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } } },
+            scales: {
+                x: { ticks: { color: '#8892b0', font: { size: 9 } }, grid: { display: false } },
+                y: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } }
+            },
             plugins: { legend: { labels: { color: '#8892b0' } } }
         }
     });
 }
 
 function renderBucketChart() {
-    const ctx = document.getElementById('chartBucket');
-    const map = {};
-    auditData.forEach(r => { if (r.bucket) map[r.bucket] = (map[r.bucket] || 0) + 1; });
+    var ctx = document.getElementById('chartBucket');
+    var map = {};
+    auditData.forEach(function(r) {
+        if (r.bucket) map[r.bucket] = (map[r.bucket] || 0) + 1;
+    });
+
     if (charts.bucket) charts.bucket.destroy();
     charts.bucket = new Chart(ctx, {
         type: 'pie',
         data: {
             labels: Object.keys(map),
-            datasets: [{ data: Object.values(map), backgroundColor: ['#00d4ff', '#a78bfa', '#fb923c', '#00e68a'], borderWidth: 0 }]
+            datasets: [{
+                data: Object.values(map),
+                backgroundColor: ['#00d4ff', '#a78bfa', '#fb923c', '#00e68a', '#ff5757'],
+                borderWidth: 0
+            }]
         },
-        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#8892b0' } }
+            }
+        }
     });
 }
 
@@ -871,193 +1453,99 @@ function renderBucketChart() {
 // PROCESS TABLE
 // ═══════════════════════════════════════════════════════════════
 function renderProcessTable() {
-    const map = {};
-    auditData.forEach(r => {
+    var map = {};
+
+    auditData.forEach(function(r) {
         if (!map[r.process]) map[r.process] = { total: 0, resolved: 0, open: 0, pending: 0 };
         map[r.process].total++;
-        const c = statusCache[r.ticketId];
+        var c = statusCache[r.ticketId];
         if (!c) return;
-        const s = c.status.toLowerCase();
+        var s = c.status.toLowerCase();
         if (/resolved|closed/.test(s)) map[r.process].resolved++;
         else if (/open|assigned/.test(s)) map[r.process].open++;
         else if (/pending/.test(s)) map[r.process].pending++;
     });
-    const tbody = document.getElementById('processTableBody');
-    tbody.innerHTML = Object.entries(map).sort((a, b) => b[1].total - a[1].total).map(([proc, d]) => {
-        const rate = d.total > 0 ? Math.round((d.resolved / d.total) * 100) : 0;
-        return `<tr><td>${proc}</td><td>${d.total}</td><td style="color:var(--green)">${d.resolved}</td><td style="color:var(--yellow)">${d.open}</td><td style="color:var(--purple)">${d.pending}</td><td>${rate}%</td></tr>`;
-    }).join('');
+
+    var tbody = document.getElementById('processTableBody');
+    tbody.innerHTML = Object.entries(map)
+        .sort(function(a, b) { return b[1].total - a[1].total; })
+        .map(function(entry) {
+            var proc = entry[0];
+            var d = entry[1];
+            var rate = d.total > 0 ? Math.round((d.resolved / d.total) * 100) : 0;
+            return '<tr>' +
+                '<td>' + proc + '</td>' +
+                '<td>' + d.total + '</td>' +
+                '<td style="color:var(--green)">' + d.resolved + '</td>' +
+                '<td style="color:var(--yellow)">' + d.open + '</td>' +
+                '<td style="color:var(--purple)">' + d.pending + '</td>' +
+                '<td>' + rate + '%</td>' +
+                '</tr>';
+        }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
 // AUDITOR GRID
 // ═══════════════════════════════════════════════════════════════
 function renderAuditorGrid() {
-    const processFilter = document.getElementById('auditorProcessFilter')?.value || 'all';
-    const data = processFilter === 'all' ? auditData : auditData.filter(r => r.process === processFilter);
+    var processFilter = document.getElementById('auditorProcessFilter');
+    var pf = processFilter ? processFilter.value : 'all';
+    var data = pf === 'all' ? auditData : auditData.filter(function(r) { return r.process === pf; });
 
-    const map = {};
-    data.forEach(r => {
-        if (!map[r.auditor]) map[r.auditor] = { processes: new Set(), total: 0, resolved: 0, open: 0 };
+    var map = {};
+    data.forEach(function(r) {
+        if (!map[r.auditor]) map[r.auditor] = { processes: new Set(), total: 0, resolved: 0 };
         map[r.auditor].processes.add(r.process);
         map[r.auditor].total++;
-        const c = statusCache[r.ticketId];
+        var c = statusCache[r.ticketId];
         if (c && /resolved|closed/.test(c.status.toLowerCase())) map[r.auditor].resolved++;
-        else if (c && /open|assigned/.test(c.status.toLowerCase())) map[r.auditor].open++;
     });
 
-    const grid = document.getElementById('auditorGrid');
-    grid.innerHTML = Object.entries(map).sort((a, b) => b[1].total - a[1].total).map(([name, d]) => {
-        const rate = d.total > 0 ? Math.round((d.resolved / d.total) * 100) : 0;
-        return `
-            <div class="auditor-card">
-                <div class="auditor-name">👤 ${name}</div>
-                <div class="auditor-process">${[...d.processes].join(', ')}</div>
-                <div class="auditor-metrics">
-                    <div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--accent)">${d.total}</div><div class="auditor-metric-lbl">Total</div></div>
-                    <div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--green)">${d.resolved}</div><div class="auditor-metric-lbl">Resolved</div></div>
-                    <div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--yellow)">${d.total - d.resolved}</div><div class="auditor-metric-lbl">Open</div></div>
-                </div>
-                <div class="auditor-bar">
-                    <div class="auditor-bar-track"><div class="auditor-bar-fill" style="width:${rate}%"></div></div>
-                    <div class="auditor-bar-label">${rate}% resolved</div>
-                </div>
-            </div>
-        `;
-    }).join('');
+    var grid = document.getElementById('auditorGrid');
+    grid.innerHTML = Object.entries(map)
+        .sort(function(a, b) { return b[1].total - a[1].total; })
+        .map(function(entry) {
+            var name = entry[0];
+            var d = entry[1];
+            var rate = d.total > 0 ? Math.round((d.resolved / d.total) * 100) : 0;
+            var openCount = d.total - d.resolved;
+            var procs = Array.from(d.processes).join(', ');
+
+            return '<div class="auditor-card">' +
+                '<div class="auditor-name">👤 ' + name + '</div>' +
+                '<div class="auditor-process">' + procs + '</div>' +
+                '<div class="auditor-metrics">' +
+                    '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--accent)">' + d.total + '</div><div class="auditor-metric-lbl">Total</div></div>' +
+                    '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--green)">' + d.resolved + '</div><div class="auditor-metric-lbl">Resolved</div></div>' +
+                    '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--yellow)">' + openCount + '</div><div class="auditor-metric-lbl">Open</div></div>' +
+                '</div>' +
+                '<div class="auditor-bar">' +
+                    '<div class="auditor-bar-track"><div class="auditor-bar-fill" style="width:' + rate + '%"></div></div>' +
+                    '<div class="auditor-bar-label">' + rate + '% resolved</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TICKET TABLE
+// ALL TICKETS TABLE
 // ═══════════════════════════════════════════════════════════════
 function renderTicketTable() {
-    const search = (document.getElementById('ticketSearch')?.value || '').toLowerCase();
-    const pFilter = document.getElementById('ticketProcessFilter')?.value || 'all';
-    const aFilter = document.getElementById('ticketAuditorFilter')?.value || 'all';
-    const sFilter = document.getElementById('ticketStatusFilter')?.value || 'all';
+    var search = (document.getElementById('ticketSearch') ? document.getElementById('ticketSearch').value : '').toLowerCase();
+    var pf = document.getElementById('ticketProcessFilter') ? document.getElementById('ticketProcessFilter').value : 'all';
+    var af = document.getElementById('ticketAuditorFilter') ? document.getElementById('ticketAuditorFilter').value : 'all';
+    var sf = document.getElementById('ticketStatusFilter') ? document.getElementById('ticketStatusFilter').value : 'all';
 
-    let filtered = auditData;
-    if (pFilter !== 'all') filtered = filtered.filter(r => r.process === pFilter);
-    if (aFilter !== 'all') filtered = filtered.filter(r => r.auditor === aFilter);
-    if (search) filtered = filtered.filter(r => r.ticketId.toLowerCase().includes(search) || r.auditor.toLowerCase().includes(search));
-    if (sFilter !== 'all') {
-        filtered = filtered.filter(r => {
-            const c = statusCache[r.ticketId];
-            if (!c) return sFilter === 'unknown';
-            const s = c.status.toLowerCase();
-            if (sFilter === 'resolved') return /resolved|closed/.test(s);
-            if (sFilter === 'open') return /open|assigned/.test(s);
-            if (sFilter === 'pending') return /pending/.test(s);
-            return false;
-        });
-    }
+    var filtered = auditData.slice();
 
-    const tbody = document.getElementById('ticketTableBody');
-    tbody.innerHTML = filtered.slice(0, 500).map((r, i) => {
-        const c = statusCache[r.ticketId];
-        const status = c ? c.status : 'Not Checked';
-        const bc = badgeClass(status);
-        const ts = c?.ts ? new Date(c.ts).toLocaleTimeString() : '—';
-        return `<tr>
-            <td>${i + 1}</td>
-            <td><a href="${CONFIG.TICKET_BASE}${r.ticketId}" target="_blank" class="link-tt">${r.ticketId}</a></td>
-            <td>${r.auditor}</td>
-            <td>${r.process}</td>
-            <td>${r.bucket}</td>
-            <td><span class="badge ${bc}">${statusIcon(status)} ${status}</span></td>
-            <td>${ts}</td>
-        </tr>`;
-    }).join('');
-
-    if (filtered.length > 500) {
-        tbody.innerHTML += `<tr><td colspan="7" style="text-align:center;color:var(--text-dim);">Showing 500 of ${filtered.length} — use filters to narrow</td></tr>`;
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// FILTERS
-// ═══════════════════════════════════════════════════════════════
-function populateFilters() {
-    const processes = [...new Set(auditData.map(r => r.process))].sort();
-    const auditors = [...new Set(auditData.map(r => r.auditor))].sort();
-
-    const buildOpts = (vals) => '<option value="all">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
-
-    ['ticketProcessFilter', 'auditorProcessFilter'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<option value="all">All Processes</option>' + processes.map(p => `<option value="${p}">${p}</option>`).join('');
+    if (pf !== 'all') filtered = filtered.filter(function(r) { return r.process === pf; });
+    if (af !== 'all') filtered = filtered.filter(function(r) { return r.auditor === af; });
+    if (search) filtered = filtered.filter(function(r) {
+        return r.ticketId.toLowerCase().includes(search) || r.auditor.toLowerCase().includes(search);
     });
-    const af = document.getElementById('ticketAuditorFilter');
-    if (af) af.innerHTML = '<option value="all">All Auditors</option>' + auditors.map(a => `<option value="${a}">${a}</option>`).join('');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════
-function badgeClass(status) {
-    const s = (status || '').toLowerCase();
-    if (/resolved|closed/.test(s)) return 'badge-resolved';
-    if (/open|assigned/.test(s)) return 'badge-open';
-    if (/pending|check/.test(s)) return 'badge-pending';
-    return 'badge-unknown';
-}
-
-function statusIcon(status) {
-    const s = (status || '').toLowerCase();
-    if (/resolved|closed/.test(s)) return '✅';
-    if (/open|assigned/.test(s)) return '🟡';
-    if (/pending/.test(s)) return '🟣';
-    if (/check/.test(s)) return '⏳';
-    return '⚪';
-}
-
-function now() { return Date.now(); }
-
-function toast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-function updateRefreshTime() {
-    const d = new Date();
-    document.getElementById('refreshTime').textContent = `Last refresh: ${d.toLocaleTimeString()} · ${d.toLocaleDateString()}`;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// CACHE
-// ═══════════════════════════════════════════════════════════════
-function setCache(id, data) {
-    statusCache[id] = data;
-    saveCacheToStorage();
-    return data;
-}
-
-function getCache(id) {
-    const c = statusCache[id];
-    if (!c) return null;
-    if ((now() - c.ts) > CONFIG.CACHE_MIN * 60000) { delete statusCache[id]; return null; }
-    return c;
-}
-
-function saveCacheToStorage() {
-    try { localStorage.setItem('tp_status_cache', JSON.stringify(statusCache)); } catch(e) {}
-}
-
-function loadCacheFromStorage() {
-    try {
-        const raw = localStorage.getItem('tp_status_cache');
-        if (raw) statusCache = JSON.parse(raw);
-        // Purge stale
-        const cutoff = now() - CONFIG.CACHE_MIN * 60000;
-        Object.keys(statusCache).forEach(k => { if (statusCache[k].ts < cutoff) delete statusCache[k]; });
-    } catch(e) { statusCache = {}; }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════════════════════
-function saveConfig() {
-    const url = document.getElementById('cfgAuditUrl').value.trim();
-    
+    if (sf !== 'all') {
+        filtered = filtered.filter(function(r) {
+            var c = statusCache[r.ticketId];
+            if (!c) return sf === 'unknown';
+            var s = c.status.toLowerCase();
+            if
