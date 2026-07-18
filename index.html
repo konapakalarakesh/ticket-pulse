@@ -15,11 +15,11 @@
             --hover: #1c1c50;
             --accent: #00d4ff;
             --glow: rgba(0,212,255,.15);
-            --green: [MAC_ADDRESS];
+            --green: #00e68a;
             --yellow: #fbbf24;
             --red: #ff5757;
             --purple: #a78bfa;
-            --orange: #[MAC_ADDRESS];
+            --orange: #fb923c;
             --text: #f0f0f0;
             --dim: #8892b0;
             --border: rgba(100,120,200,.15);
@@ -290,11 +290,11 @@
     var statusCache = {};
     var chartInstances = {};
 
-    // ═══ INIT — NO MIDWAY AUTH CHECK ═══
+    // ═══ INIT — DIRECT BOOT, NO AUTH GATE ═══
     document.addEventListener('DOMContentLoaded', function() {
         loadCache();
         setupTabs();
-        toast('⚡ Dashboard ready');
+        toast('⚡ Dashboard ready — authenticate via bat file first');
         boot();
     });
 
@@ -331,11 +331,11 @@
                     bucket: row['Bucket'] || ''
                 };
             }).filter(function(x) { return x.ticketId.length > 0; });
-            toast('📊 Loaded ' + auditData.length + ' tickets');
+            toast('📊 Loaded ' + auditData.length + ' tickets from sheet');
             populateFilters();
             renderAll();
         } catch (e) {
-            toast('⚠️ Place Audits.xlsx in same folder or paste IDs manually');
+            toast('ℹ️ No Audits.xlsx found — paste IDs manually in Quick Check');
         }
     }
 
@@ -440,7 +440,7 @@
     }
 
     async function checkAllTickets() {
-        if (!auditData.length) return toast('⚠️ No audit data');
+        if (!auditData.length) return toast('⚠️ No audit data — paste IDs manually');
         document.getElementById('ttInput').value = auditData.map(function(r) { return r.ticketId; }).join('\n');
         await runQuickCheck();
     }
@@ -448,7 +448,7 @@
     function loadSheetIDs() {
         if (!auditData.length) return toast('⚠️ No audit data loaded');
         document.getElementById('ttInput').value = auditData.map(function(r) { return r.ticketId; }).join('\n');
-        toast('📥 Loaded ' + auditData.length + ' IDs');
+        toast('📥 Loaded ' + auditData.length + ' IDs from sheet');
     }
 
     function clearChecker() {
@@ -518,7 +518,7 @@
             type: 'doughnut',
             data: {
                 labels: ['Resolved', 'Open', 'Pending', 'Unchecked'],
-                datasets: [{ data: [r, o, p, u], backgroundColor: ['[MAC_ADDRESS]', '#fbbf24', '#a78bfa', '#4b5563'], borderWidth: 0 }]
+                datasets: [{ data: [r, o, p, u], backgroundColor: ['#00e68a', '#fbbf24', '#a78bfa', '#4b5563'], borderWidth: 0 }]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
         });
@@ -551,7 +551,7 @@
                 labels: sorted.map(function(e) { return e[0]; }),
                 datasets: [
                     { label: 'Total', data: sorted.map(function(e) { return e[1].t; }), backgroundColor: 'rgba(0,212,255,.4)' },
-                    { label: 'Resolved', data: sorted.map(function(e) { return e[1].r; }), backgroundColor: '[MAC_ADDRESS]' }
+                    { label: 'Resolved', data: sorted.map(function(e) { return e[1].r; }), backgroundColor: '#00e68a' }
                 ]
             },
             options: {
@@ -568,7 +568,7 @@
             type: 'pie',
             data: {
                 labels: Object.keys(bm),
-                datasets: [{ data: Object.values(bm), backgroundColor: ['#00d4ff', '#a78bfa', '#[MAC_ADDRESS]', '[MAC_ADDRESS]', '#ff5757'], borderWidth: 0 }]
+                datasets: [{ data: Object.values(bm), backgroundColor: ['#00d4ff', '#a78bfa', '#fb923c', '#00e68a', '#ff5757'], borderWidth: 0 }]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
         });
