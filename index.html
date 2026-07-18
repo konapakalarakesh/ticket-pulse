@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Pulse — Audit TT Control Tower</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230A0E17%22/><path d=%22M3 17h5l3-9 5 18 3-13 2 4h8%22 stroke=%22%2335E0C0%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --bg:#080B12; --bg-alt:#0D121C;
+  --surface:#121826; --surface-2:#161E2D; --surface-hover:#1B2436;
+  --border:#232B3E; --border-soft:#1A2233;
+  --text:#E9EDF5; --text-dim:#8B96AC; --text-faint:#5B667D;
+  --brand:#35E0C0; --brand-dim:#1F8F7B; --brand-glow:rgba(53,224,192,.18);
+  --amber:#FFB454; --red:#FF5C7A; --green:#4ADE80; --blue:#5B9DFF; --slate:#6B7690;
+  --radius:14px; --radius-sm:9px;
+  --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
+  --shadow-lg:0 20px 60px -20px rgba(0,0,0,.6);
+}
+[data-theme="light"]{
+  --bg:#F3F5FA; --bg-alt:#EAEDF5;
+  --surface:#FFFFFF; --surface-2:#F7F8FC; --surface-hover:#EEF1F8;
+  --border:#DCE1EC; --border-soft:#E6E9F2;
+  --text:#131A29; --text-dim:#5A6478; --text-faint:#98A1B5;
+  --brand:#0FAE93; --brand-dim:#0C8A75; --brand-glow:rgba(15,174,147,.12);
+  --shadow-lg:0 20px 60px -25px rgba(20,30,60,.25);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:radial-gradient(1200px 600px at 15% -10%, var(--brand-glow), transparent 60%), var(--bg);
+  color:var(--text); font-family:var(--font-body); font-size:14.5px; line-height:1.5;
+  min-height:100vh; transition:background .3s,color .3s;
+}
+::selection{background:var(--brand); color:#04120F;}
+a{color:var(--brand); text-decoration:none;}
+.mono{font-family:var(--font-mono);}
+.hidden{display:none !important;}
+button{font-family:inherit; cursor:pointer;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ============================= AUTH GATE ============================= */
+#authGate{
+  position:fixed; inset:0; z-index:999; background:var(--bg);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.gate-card{
+  max-width:520px; width:100%; background:var(--surface); border:1px solid var(--border);
+  border-radius:18px; padding:36px 34px; box-shadow:var(--shadow-lg); text-align:left;
+}
+.gate-badge{
+  display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11.5px;
+  color:var(--brand); background:var(--brand-glow); border:1px solid var(--brand-dim);
+  padding:4px 10px; border-radius:20px; letter-spacing:.04em; margin-bottom:18px;
+}
+.gate-badge .dot{width:6px; height:6px; border-radius:50%; background:var(--brand); animation:pulseDot 1.6s infinite;}
+.gate-card h1{font-family:var(--font-display); font-size:24px; margin-bottom:10px;}
+.gate-card p{color:var(--text-dim); margin-bottom:14px; font-size:13.8px;}
+.gate-card .note{
+  background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px;
+  padding:12px 14px; font-size:12.8px; color:var(--text-dim); margin:16px 0;
+}
+.gate-actions{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;}
+#gateStatusLine{font-size:12px; margin-top:14px; color:var(--text-faint); font-family:var(--font-mono);}
+
+/* ============================= BUTTONS ============================= */
+.btn{
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600;
+  display:inline-flex; align-items:center; gap:7px; transition:.15s ease;
+}
+.btn:hover{background:var(--surface-hover); border-color:var(--brand-dim); transform:translateY(-1px);}
+.btn-primary{background:var(--brand); border-color:var(--brand); color:#04120F;}
+.btn-primary:hover{filter:brightness(1.08); background:var(--brand);}
+.btn-ghost{background:transparent;}
+.btn-sm{padding:6px 11px; font-size:12px;}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+
+/* ============================= HEADER ============================= */
+header{
+  position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+  background:color-mix(in srgb, var(--bg) 82%, transparent); border-bottom:1px solid var(--border-soft);
+}
+.header-inner{max-width:1360px; margin:0 auto; padding:14px 28px; display:flex; align-items:center; gap:20px;}
+.brand{display:flex; align-items:center; gap:11px;}
+.brand-mark{width:34px; height:34px; flex-shrink:0;}
+.brand-text h1{font-family:var(--font-display); font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.brand-text span{font-size:11px; color:var(--text-faint); font-family:var(--font-mono);}
+.pulse-strip{flex:1; height:30px; opacity:.55; margin:0 8px;}
+.header-actions{display:flex; align-items:center; gap:10px;}
+.theme-toggle{
+  width:38px; height:38px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2);
+  display:flex; align-items:center; justify-content:center; font-size:15px;
+}
+nav.tabs{max-width:1360px; margin:0 auto; padding:0 28px; display:flex; gap:4px; border-bottom:1px solid var(--border-soft);}
+.tab-btn{
+  background:none; border:none; color:var(--text-dim); padding:13px 6px; font-size:13.5px; font-weight:600;
+  border-bottom:2px solid transparent; margin-right:22px; display:flex; align-items:center; gap:7px;
+}
+.tab-btn.active{color:var(--text); border-color:var(--brand);}
+.tab-btn:hover{color:var(--text);}
+
+main{max-width:1360px; margin:0 auto; padding:28px;}
+.view{display:none;}
+.view.active{display:block; animation:fadeUp .35s ease;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+/* ============================= TOP STAT ROW ============================= */
+.stat-row{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:22px;}
+.stat-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:16px 18px; position:relative; overflow:hidden;
+}
+.stat-card .k{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; font-weight:600; margin-bottom:8px;}
+.stat-card .v{font-family:var(--font-display); font-size:26px; font-weight:700;}
+.stat-card .v small{font-size:13px; color:var(--text-dim); font-weight:500; margin-left:2px;}
+.stat-card.accent-brand .v{color:var(--brand);}
+.stat-card.accent-red .v{color:var(--red);}
+.stat-card.accent-amber .v{color:var(--amber);}
+.stat-card.accent-slate .v{color:var(--slate);}
+.stat-card .bar{position:absolute; bottom:0; left:0; height:3px; background:var(--brand); width:0; transition:width .8s ease;}
+
+/* ============================= PANELS ============================= */
+.panel{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:22px; margin-bottom:20px;
+}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+.panel-head h2{font-family:var(--font-display); font-size:15.5px; font-weight:700;}
+.panel-head .sub{color:var(--text-faint); font-size:12px; margin-top:2px; font-weight:500;}
+.grid-2{display:grid; grid-template-columns:1.3fr 1fr; gap:18px;}
+.grid-charts{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;}
+.chart-box{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px;}
+.chart-box h3{font-size:13px; font-weight:700; margin-bottom:14px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em;}
+.chart-canvas-wrap{position:relative; height:230px;}
+
+/* ============================= TICKET CHECKER ============================= */
+textarea#ticketInput{
+  width:100%; min-height:110px; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:10px; padding:12px 14px; color:var(--text); font-family:var(--font-mono); font-size:13px;
+  resize:vertical;
+}
+textarea#ticketInput:focus{outline:none; border-color:var(--brand-dim);}
+.checker-toolbar{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center;}
+.progress-wrap{flex:1; min-width:180px; display:flex; align-items:center; gap:10px;}
+.progress-track{flex:1; height:6px; background:var(--surface-2); border-radius:4px; overflow:hidden;}
+.progress-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--brand-dim),var(--brand)); transition:width .3s ease;}
+#progressLabel{font-size:11.5px; color:var(--text-faint); font-family:var(--font-mono); white-space:nowrap;}
+
+/* ============================= TABLE ============================= */
+.table-toolbar{display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; align-items:center;}
+.search-box{
+  flex:1; min-width:180px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px;
+  padding:8px 12px; display:flex; align-items:center; gap:8px;
+}
+.search-box input{background:none; border:none; color:var(--text); font-size:13px; width:100%;}
+.search-box input:focus{outline:none;}
+select.filter-select{
+  background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:9px;
+  padding:8px 10px; font-size:12.5px;
+}
+.table-scroll{overflow-x:auto; border:1px solid var(--border-soft); border-radius:12px;}
+table{width:100%; border-collapse:collapse; min-width:820px;}
+thead th{
+  text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);
+  padding:11px 14px; background:var(--surface-2); border-bottom:1px solid var(--border); position:sticky; top:0;
+  cursor:pointer; user-select:none; white-space:nowrap;
+}
+thead th:hover{color:var(--text);}
+thead th .arrow{opacity:.4; margin-left:3px;}
+tbody td{padding:10px 14px; border-bottom:1px solid var(--border-soft); font-size:13px; white-space:nowrap;}
+tbody tr:hover{background:var(--surface-hover);}
+tbody tr:last-child td{border-bottom:none;}
+.id-cell{font-family:var(--font-mono); font-weight:600; color:var(--text);}
+.id-cell a{color:inherit;}
+.id-cell a:hover{color:var(--brand);}
+
+.badge{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px;
+  font-size:11.5px; font-weight:600; font-family:var(--font-mono); white-space:nowrap;
+}
+.badge .dot{width:6px; height:6px; border-radius:50%;}
+.badge-closed{background:rgba(74,222,128,.12); color:var(--green);}
+.badge-closed .dot{background:var(--green);}
+.badge-open{background:rgba(255,180,84,.12); color:var(--amber);}
+.badge-open .dot{background:var(--amber);}
+.badge-escalated{background:rgba(255,92,122,.12); color:var(--red);}
+.badge-escalated .dot{background:var(--red); box-shadow:0 0 0 0 rgba(255,92,122,.5); animation:pulseDot 1.4s infinite;}
+.badge-unknown{background:rgba(107,118,144,.14); color:var(--slate);}
+.badge-unknown .dot{background:var(--slate);}
+.badge-checking .dot{background:var(--blue); animation:pulseDot 1s infinite;}
+.badge-checking{background:rgba(91,157,255,.12); color:var(--blue);}
+.badge-manual::after{content:'manual'; font-size:9px; opacity:.6; margin-left:2px; font-family:var(--font-body);}
+
+@keyframes pulseDot{0%{box-shadow:0 0 0 0 currentColor;opacity:1;}70%{box-shadow:0 0 0 6px transparent;opacity:.4;}100%{opacity:1;}}
+
+.row-actions{display:flex; gap:6px;}
+.icon-btn{
+  background:var(--surface-2); border:1px solid var(--border); width:26px; height:26px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-dim);
+}
+.icon-btn:hover{color:var(--brand); border-color:var(--brand-dim);}
+.status-select{
+  background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px;
+  padding:4px 6px; font-size:11.5px; font-family:var(--font-mono);
+}
+
+/* ============================= AUDITOR CARDS ============================= */
+.auditor-list{display:flex; flex-direction:column; gap:10px;}
+.auditor-row{
+  display:grid; grid-template-columns:150px 1fr 220px; gap:16px; align-items:center;
+  padding:12px 14px; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:11px;
+}
+.auditor-name{font-weight:700; font-size:13.5px;}
+.auditor-name small{display:block; color:var(--text-faint); font-weight:500; font-size:11px; margin-top:2px;}
+.stack-bar{height:10px; border-radius:6px; overflow:hidden; display:flex; background:var(--surface);}
+.stack-seg{height:100%;}
+.seg-closed{background:var(--green);}
+.seg-open{background:var(--amber);}
+.seg-escalated{background:var(--red);}
+.seg-unknown{background:var(--slate);}
+.auditor-meta{display:flex; gap:14px; justify-content:flex-end; font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim);}
+.auditor-meta b{color:var(--text); font-weight:700;}
+
+/* ============================= EMPTY / LOADING ============================= */
+.empty-state{text-align:center; padding:50px 20px; color:var(--text-dim);}
+.empty-state .icon{font-size:30px; margin-bottom:10px; opacity:.5;}
+.empty-state h3{font-family:var(--font-display); font-size:15px; margin-bottom:6px; color:var(--text);}
+.empty-state p{font-size:12.8px; max-width:420px; margin:0 auto;}
+.skeleton{background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface-hover) 37%,var(--surface-2) 63%); background-size:400% 100%; animation:shimmer 1.4s infinite; border-radius:8px;}
+@keyframes shimmer{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+
+/* ============================= FOOTER / MISC ============================= */
+.footer-bar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px; flex-wrap:wrap; color:var(--text-faint); font-size:11.5px; font-family:var(--font-mono);}
+.toast-wrap{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px;}
+.toast{
+  background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--brand);
+  padding:11px 16px; border-radius:9px; font-size:12.8px; box-shadow:var(--shadow-lg); max-width:320px;
+  animation:slideIn .25s ease;
+}
+.toast.warn{border-left-color:var(--amber);}
+.toast.error{border-left-color:var(--red);}
+@keyframes slideIn{from{opacity:0; transform:translateX(20px);} to{opacity:1; transform:translateX(0);}}
+.helper-banner{
+  display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px dashed var(--border);
+  border-radius:10px; padding:10px 14px; font-size:12px; color:var(--text-dim); margin-bottom:14px;
+}
+.helper-banner.ok{border-style:solid; border-color:var(--brand-dim); color:var(--brand);}
+.pill{font-family:var(--font-mono); font-size:10.5px; padding:2px 7px; border-radius:5px; background:var(--surface); border:1px solid var(--border);}
+
+@media(max-width:960px){
+  .stat-row{grid-template-columns:repeat(2,1fr);}
+  .grid-2, .grid-charts{grid-template-columns:1fr;}
+  .auditor-row{grid-template-columns:1fr; gap:8px;}
+  .auditor-meta{justify-content:flex-start;}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- ============================= AUTH GATE ============================= -->
+<div id="authGate">
+  <div class="gate-card">
+    <div class="gate-badge"><span class="dot"></span> AMAZON INTERNAL &middot; MIDWAY REQUIRED</div>
+    <h1>Ticket Pulse</h1>
+    <p>This board reads live status straight from <b class="mono">t.corp.amazon.com</b>, so it only works while you're on the Amazon corporate network and signed in through Midway — the same session your browser already uses for the ticketing tool.</p>
+    <div class="note">
+      We can't silently verify your Midway session from a page hosted on GitHub Pages (cross-site auth checks are blocked by design). Sign in below if you haven't already, then continue — every ticket lookup after this point runs in your own browser using your own access, nothing is sent to a third-party server.
+    </div>
+    <div class="gate-actions">
+      <a class="btn btn-primary" href="https://midway-auth.amazon.com/" target="_blank" rel="noopener">🔐 Open Midway sign-in</a>
+      <button class="btn" id="gateContinueBtn">Continue to dashboard →</button>
+    </div>
+    <div id="gateStatusLine">checking network reachability…</div>
+  </div>
+</div>
+
+<!-- ============================= HEADER ============================= -->
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="var(--surface-2)" stroke="var(--border)"/><path d="M3 17h5l3-9 5 18 3-13 2 4h8" stroke="var(--brand)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="brand-text">
+        <h1>Ticket Pulse</h1>
+        <span>MBO MATCHING &middot; AUDIT TT CONTROL TOWER</span>
+      </div>
+    </div>
+    <svg class="pulse-strip" viewBox="0 0 400 30" preserveAspectRatio="none"><path id="pulseStripPath" d="M0 15 L120 15 L135 4 L150 26 L165 15 L400 15" fill="none" stroke="var(--brand)" stroke-width="1.6"/></svg>
+    <div class="header-actions">
+      <span class="pill" id="cacheCountPill">0 tickets tracked</span>
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="analytics">📊 Analytics</button>
+    <button class="tab-btn" data-tab="checker">🔎 Ticket Checker</button>
+    <button class="tab-btn" data-tab="setup">⚙️ Setup &amp; Help</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- shared refresh bar -->
+  <div class="footer-bar" style="margin-bottom:18px;">
+    <div>Last refreshed: <b id="lastRefreshed" class="mono" style="color:var(--text);">—</b></div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" id="autoRefreshToggle" checked> auto-refresh sheet every <span id="autoRefreshMinLabel">15</span>m
+      </label>
+      <button class="btn btn-sm" id="refreshBtn">↻ Refresh now</button>
+    </div>
+  </div>
+
+  <!-- ============================= ANALYTICS VIEW ============================= -->
+  <section class="view active" id="view-analytics">
+
+    <div class="stat-row" id="statRow">
+      <!-- injected -->
+    </div>
+
+    <div class="grid-charts">
+      <div class="chart-box"><h3>Status distribution</h3><div class="chart-canvas-wrap"><canvas id="chartStatus"></canvas></div></div>
+      <div class="chart-box"><h3>Tickets by process</h3><div class="chart-canvas-wrap"><canvas id="chartProcess"></canvas></div></div>
+    </div>
+    <div class="grid-charts">
+      <div class="chart-box" style="grid-column:1/-1;"><h3>Tickets by auditor (stacked by status)</h3><div class="chart-canvas-wrap" style="height:280px;"><canvas id="chartAuditor"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Auditor performance</h2><div class="sub">Total TTs, status split and closure rate per auditor — pulled from the audit sheet, merged with live t.corp status.</div></div>
+        <span class="pill" id="auditorCountPill">0 auditors</span>
+      </div>
+      <div id="auditorList" class="auditor-list"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Process breakdown</h2><div class="sub">Volume and closure rate per audit process (Task column in the sheet).</div></div>
+      </div>
+      <div class="table-scroll">
+        <table id="processTable">
+          <thead><tr><th>Process</th><th>Total TTs</th><th>Closed</th><th>Open / Pending</th><th>Not verified</th><th>Closure %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================= CHECKER VIEW ============================= -->
+  <section class="view" id="view-checker">
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Check ticket status</h2><div class="sub">Paste TT IDs (one per line, or comma-separated) and run a live check against t.corp. Requires the Ticket Pulse helper userscript — see the Setup tab if you haven't installed it.</div></div>
+      </div>
+      <textarea id="ticketInput" placeholder="D209619666&#10;V2288900166&#10;P473702498&#10;..."></textarea>
+      <div class="checker-toolbar">
+        <button class="btn" id="loadFromSheetBtn">📥 Load all IDs from sheet</button>
+        <button class="btn btn-primary" id="startCheckBtn">⚡ Start live check</button>
+        <button class="btn btn-ghost" id="clearInputBtn">Clear</button>
+        <div class="progress-wrap hidden" id="progressWrap">
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <span id="progressLabel">0 / 0</span>
+        </div>
+      </div>
+      <div class="helper-banner" id="helperBanner">
+        <span>🧩</span>
+        <span>Helper status: <b id="helperStatusText">not detected yet — it announces itself once installed and a ticket tab has been opened.</b></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Ticket results</h2><div class="sub">Click a status badge to set it manually if a ticket can't be auto-verified.</div></div>
+        <button class="btn btn-sm" id="exportCsvBtn">⬇ Export CSV</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box">🔍 <input type="text" id="ticketSearch" placeholder="Search ticket ID, auditor, process…"></div>
+        <select class="filter-select" id="statusFilter">
+          <option value="">All statuses</option>
+          <option value="closed">Closed</option>
+          <option value="open">Open / Pending</option>
+          <option value="escalated">Escalated / Sev-5</option>
+          <option value="unknown">Not verified</option>
+        </select>
+      </div>
+      <div class="table-scroll">
+        <table id="ticketTable">
+          <thead>
+            <tr>
+              <th data-sort="id">Ticket ID</th>
+              <th data-sort="associate">Auditor</th>
+              <th data-sort="task">Process</th>
+              <th data-sort="statusGroup">Status</th>
+              <th data-sort="closureCode">Closure code</th>
+              <th data-sort="severity">Severity</th>
+              <th data-sort="checkedAt">Checked</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ticketTableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="ticketEmptyState">
+        <div class="icon">🗂️</div>
+        <h3>No tickets yet</h3>
+        <p>Paste some ticket IDs above, or load them straight from the audit sheet, then run a live check.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= SETUP VIEW ============================= -->
+  <section class="view" id="view-setup">
+    <div class="panel">
+      <div class="panel-head"><h2>How this dashboard is wired</h2></div>
+      <p style="color:var(--text-dim); margin-bottom:14px;">Three moving parts, all static — nothing runs on a server you have to maintain.</p>
+      <ol style="color:var(--text-dim); padding-left:18px; display:flex; flex-direction:column; gap:10px; font-size:13px;">
+        <li><b style="color:var(--text);">The audit sheet</b> — this repo has just two files: <code class="pill">index.html</code> and the audit workbook sitting right next to it. Whenever the sheet changes, upload the new version to GitHub with the <b>exact same file name</b> so it overwrites the old one — no code edit needed. The dashboard fetches it same-origin from the published Pages site, so there's no CORS issue and no separate hosting step.</li>
+        <li><b style="color:var(--text);">Live ticket status</b> — t.corp.amazon.com doesn't expose a public API, and a page on github.io can't read t.corp's DOM or cookies across origins. So instead of faking it, this dashboard opens the real ticket page in a small popup (using <i>your</i> authenticated session) and relies on a one-time browser userscript to read the status off the page and hand it back. This is the only reliable way to get true live data into a GitHub-hosted page.</li>
+        <li><b style="color:var(--text);">Everything else</b> — theme, cache, chart state — lives in your browser's local storage. Nothing is sent off your machine.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>1. Install the helper userscript (one-time, ~2 minutes)</h2></div>
+      <ol style="color:var(--text-dim); padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:13px;">
+        <li>Install the <b>Tampermonkey</b> browser extension (already allowed on most corp images).</li>
+        <li>Click <b>⬇ Download helper script</b> below — it saves <code class="pill">ticket-pulse-helper.user.js</code> straight from this page (it's built into the dashboard, not a separate upload). Open Tampermonkey → <i>Create a new script</i> → delete the boilerplate → paste in the downloaded file's contents → save.</li>
+        <li>Edit the <code class="pill">TARGET_ORIGIN</code> constant near the top of that file to match your dashboard's exact URL (e.g. <code class="pill">https://your-org.github.io</code>) — this stops any other site from receiving your ticket data.</li>
+        <li>Visit any ticket at <code class="pill">t.corp.amazon.com/&lt;id&gt;</code> once while signed in — you should see a small "✓ Synced to Ticket Pulse" toast appear. That confirms it's working.</li>
+      </ol>
+      <button class="btn btn-primary" id="downloadHelperBtn" style="margin-top:14px;">⬇ Download helper script</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>2. Point the dashboard at your repo</h2></div>
+      <p style="color:var(--text-dim); font-size:13px; margin-bottom:8px;">Open <code class="pill">index.html</code> and edit the <code class="pill">CONFIG</code> block at the top of the script:</p>
+      <div style="background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:14px; font-family:var(--font-mono); font-size:12px; color:var(--text-dim); overflow-x:auto;">
+const CONFIG = {<br>
+&nbsp;&nbsp;AUDIT_DATA_URL: './2026-07-17-_Audit.xlsx',&nbsp;&nbsp;// same-origin file next to index.html, cache-busted automatically<br>
+&nbsp;&nbsp;TICKET_BASE_URL: 'https://t.corp.amazon.com/',<br>
+&nbsp;&nbsp;STATUS_CACHE_TTL_HOURS: 6,&nbsp;&nbsp;// how long a checked status is trusted before it's "stale" again<br>
+&nbsp;&nbsp;AUTO_REFRESH_MINUTES: 15<br>
+};
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>3. Publish</h2></div>
+      <p style="color:var(--text-dim); font-size:13px;">Push this folder to a repo, enable <b>GitHub Pages</b> under Settings → Pages (branch: main, folder: root), and share the resulting <code class="pill">https://&lt;org&gt;.github.io/&lt;repo&gt;/</code> link with the team. Anyone on the corp network with Midway access can use it as-is.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Good to know</h2></div>
+      <ul style="color:var(--text-dim); padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:13px;">
+        <li>Without the userscript installed, the checker still works in <b>manual mode</b> — click "Open ticket ↗" and set the status yourself from the dropdown. Manual entries are tagged so the team knows they weren't auto-verified.</li>
+        <li>Popups need to be allowed for this site the first time you run a live check — your browser will prompt once.</li>
+        <li>Status is cached per browser for 6 hours so a refresh doesn't re-open every ticket; just re-run the checker on a ticket to force an update sooner.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ================================================================
+   CONFIG — edit these three lines after you fork/deploy this file
+   ================================================================ */
+const CONFIG = {
+  AUDIT_DATA_URL: './2026-07-17-_Audit.xlsx', // same-origin file, sitting next to index.html in this repo
+  TICKET_BASE_URL: 'https://t.corp.amazon.com/',
+  STATUS_CACHE_TTL_HOURS: 6,
+  AUTO_REFRESH_MINUTES: 15,
+};
+
+/* ================================================================
+   EMBEDDED HELPER USERSCRIPT
+   Kept as a single string here so the whole dashboard is one file —
+   the "Download helper script" button in the Setup tab saves this out
+   as ticket-pulse-helper.user.js. TARGET_ORIGIN is filled in with this
+   page's own origin at download time, so no manual edit is needed.
+   ================================================================ */
+function buildHelperScriptSource(){
+  const origin = window.location.origin;
+  return `// ==UserScript==
+// @name         Ticket Pulse Helper
+// @namespace    ticket-pulse
+// @version      1.0.0
+// @description  Reads TT status off t.corp.amazon.com ticket pages and reports it back to an open Ticket Pulse dashboard tab. Runs entirely in your own authenticated browser session.
+// @match        https://t.corp.amazon.com/*
+// @run-at       document-idle
+// @grant        none
+// ==/UserScript==
+
+(function () {
+  'use strict';
+
+  // Auto-filled with the dashboard's origin at the time you downloaded this
+  // file (${origin}). Only that origin can receive scraped ticket data.
+  const TARGET_ORIGIN = '${origin}';
+
+  const m = location.pathname.match(/^\\/([A-Z]?\\d{6,}|[A-Z0-9-]{6,})\\/?$/i);
+  if (!m) return;
+  const ticketId = m[1];
+
+  function extractField(text, label) {
+    const re = new RegExp(
+      label.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\$&') + '\\\\s*:?\\\\s*\\\\n?\\\\s*([^\\\\n]+)',
+      'i'
+    );
+    const found = text.match(re);
+    return found ? found[1].trim() : '';
+  }
+
+  function scrapeAndReport(attempt) {
+    attempt = attempt || 1;
+    const bodyText = document.body ? document.body.innerText : '';
+    if (!/Status\\s*:?/i.test(bodyText) && attempt < 6) {
+      setTimeout(() => scrapeAndReport(attempt + 1), 700);
+      return;
+    }
+    const payload = {
+      id: ticketId,
+      status: extractField(bodyText, 'Status'),
+      closureCode: extractField(bodyText, 'Closure code'),
+      rootCause: extractField(bodyText, 'Root cause'),
+      severity: extractField(bodyText, 'Severity'),
+      priority: extractField(bodyText, 'Priority'),
+      category: extractField(bodyText, 'Category'),
+      group: extractField(bodyText, 'Group'),
+    };
+    if (!payload.status) return;
+    if (window.opener) {
+      window.opener.postMessage({ source: 'TICKET_PULSE_HELPER', payload }, TARGET_ORIGIN);
+      showToast('✓ Synced to Ticket Pulse — ' + payload.status);
+    }
+  }
+
+  function showToast(msg) {
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:999999;background:#121826;color:#35E0C0;border:1px solid #232B3E;padding:10px 16px;border-radius:9px;font:600 12.5px -apple-system,Segoe UI,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.4)';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  scrapeAndReport();
+})();
+`;
+}
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const State = {
+  rows: [],              // raw audit sheet rows [{date,task,shortId,associate,bucket,notes}]
+  cache: loadCache(),     // { [ticketId]: {status,statusGroup,closureCode,rootCause,severity,priority,category,group,checkedAt,manual} }
+  charts: {},
+  sort: { key: 'checkedAt', dir: -1 },
+  checkerRows: [],        // merged rows currently shown in the checker table
+  liveWindow: null,
+  liveQueue: [],
+  liveTimer: null,
+};
+
+const STATUS_GROUPS = {
+  closed: ['closed','resolved','cancelled','canceled','duplicate','no plan to fix'],
+  escalated: ['escalated','sev-5','severity 5','sev 1','sev 2'],
+  open: ['open','in progress','work in progress','assigned','pending','pending customer','reopened','new']
+};
+
+/* ================================================================
+   UTIL
+   ================================================================ */
+function $(sel, ctx=document){ return ctx.querySelector(sel); }
+function $all(sel, ctx=document){ return [...ctx.querySelectorAll(sel)]; }
+function nowISO(){ return new Date().toISOString(); }
+function fmtTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+function loadCache(){
+  try{ return JSON.parse(localStorage.getItem('tp_status_cache') || '{}'); }catch(e){ return {}; }
+}
+function saveCache(){ localStorage.setItem('tp_status_cache', JSON.stringify(State.cache)); }
+function isStale(entry){
+  if(!entry || !entry.checkedAt) return true;
+  const ageH = (Date.now() - new Date(entry.checkedAt).getTime()) / 36e5;
+  return ageH > CONFIG.STATUS_CACHE_TTL_HOURS;
+}
+function classifyStatus(raw){
+  if(!raw) return 'unknown';
+  const s = raw.toLowerCase();
+  for(const [group, terms] of Object.entries(STATUS_GROUPS)){
+    if(terms.some(t => s.includes(t))) return group;
+  }
+  return 'open';
+}
+function badgeHTML(group, label, manual){
+  const map = {closed:'badge-closed', open:'badge-open', escalated:'badge-escalated', unknown:'badge-unknown', checking:'badge-checking'};
+  const cls = map[group] || 'badge-unknown';
+  return `<span class="badge ${cls} ${manual?'badge-manual':''}"><span class="dot"></span>${label}</span>`;
+}
+function toast(msg, type=''){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  $('#toastWrap').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 4200);
+}
+function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+
+/* ================================================================
+   AUTH GATE
+   ================================================================ */
+(function initGate(){
+  const statusLine = $('#gateStatusLine');
+  // heuristic-only network probe — an opaque no-cors response can't be read,
+  // but a thrown error reliably means "not reachable" (off VPN / DNS fail).
+  fetch(CONFIG.TICKET_BASE_URL, { mode:'no-cors' })
+    .then(()=>{ statusLine.textContent = '✓ t.corp.amazon.com appears reachable — you look connected.'; statusLine.style.color = 'var(--brand)'; })
+    .catch(()=>{ statusLine.textContent = '⚠ Could not reach t.corp.amazon.com — check VPN / corporate network.'; statusLine.style.color = 'var(--amber)'; });
+
+  const seen = sessionStorage.getItem('tp_gate_ok');
+  if(seen){ $('#authGate').classList.add('hidden'); }
+  $('#gateContinueBtn').addEventListener('click', ()=>{
+    sessionStorage.setItem('tp_gate_ok','1');
+    $('#authGate').classList.add('hidden');
+  });
+})();
+
+/* ================================================================
+   THEME
+   ================================================================ */
+(function initTheme(){
+  const saved = localStorage.getItem('tp_theme') || 'dark';
+  document.body.setAttribute('data-theme', saved);
+  $('#themeToggle').textContent = saved === 'dark' ? '🌙' : '☀️';
+  $('#themeToggle').addEventListener('click', ()=>{
+    const cur = document.body.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem('tp_theme', next);
+    $('#themeToggle').textContent = next === 'dark' ? '🌙' : '☀️';
+    renderAll(); // re-render charts with new grid colors
+  });
+})();
+
+/* ================================================================
+   TABS
+   ================================================================ */
+$all('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $all('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    $all('.view').forEach(v=>v.classList.remove('active'));
+    $('#view-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ================================================================
+   DATA LOAD (audit sheet)
+   ================================================================ */
+async function fetchAuditData(){
+  const url = CONFIG.AUDIT_DATA_URL + (CONFIG.AUDIT_DATA_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const buf = await res.arrayBuffer();
+  const wb = XLSX.read(buf, { type:'array' });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const json = XLSX.utils.sheet_to_json(sheet, { defval:'' });
+  return json.map(r => ({
+    date: r.Date || '',
+    task: (r.Task || 'Unassigned').toString().trim(),
+    shortId: (r.ShortId || '').toString().trim(),
+    associate: (r.Associate || 'Unassigned').toString().trim(),
+    bucket: (r.Bucket || '').toString().trim(),
+    notes: r['Unnamed: 5'] || r.Notes || ''
+  })).filter(r => r.shortId);
+}
+
+/* ================================================================
+   ANALYTICS RENDER
+   ================================================================ */
+function mergedRow(r){
+  const c = State.cache[r.shortId];
+  return {
+    ...r,
+    status: c ? c.status : null,
+    statusGroup: c ? c.statusGroup : 'unknown',
+    closureCode: c ? c.closureCode : '',
+    severity: c ? c.severity : '',
+    checkedAt: c ? c.checkedAt : null,
+    manual: c ? !!c.manual : false,
+    stale: c ? isStale(c) : true,
+  };
+}
+
+function renderStatRow(rows){
+  const total = rows.length;
+  const closed = rows.filter(r=>r.statusGroup==='closed').length;
+  const open = rows.filter(r=>r.statusGroup==='open').length;
+  const escalated = rows.filter(r=>r.statusGroup==='escalated').length;
+  const unknown = rows.filter(r=>r.statusGroup==='unknown').length;
+  const rate = total ? Math.round((closed/total)*100) : 0;
+
+  const cards = [
+    {k:'Total TTs (audit sheet)', v: total, accent:''},
+    {k:'Closed', v: closed, accent:'accent-brand'},
+    {k:'Open / Pending', v: open, accent:'accent-amber'},
+    {k:'Escalated / Sev-5', v: escalated, accent:'accent-red'},
+    {k:'Not yet verified', v: unknown, accent:'accent-slate'},
+    {k:'Closure rate', v: rate + '%', accent:'accent-brand'},
+  ];
+  $('#statRow').innerHTML = cards.map(c=>`
+    <div class="stat-card ${c.accent}">
+      <div class="k">${c.k}</div>
+      <div class="v">${c.v}</div>
+      <div class="bar" style="width:${c.k==='Closure rate'?rate:Math.min(100,(c.v/Math.max(total,1))*100)}%"></div>
+    </div>`).join('');
+}
+
+function groupBy(rows, key){
+  const m = new Map();
+  rows.forEach(r=>{
+    const k = r[key] || 'Unassigned';
+    if(!m.has(k)) m.set(k, []);
+    m.get(k).push(r);
+  });
+  return m;
+}
+
+function statusCounts(rows){
+  return {
+    closed: rows.filter(r=>r.statusGroup==='closed').length,
+    open: rows.filter(r=>r.statusGroup==='open').length,
+    escalated: rows.filter(r=>r.statusGroup==='escalated').length,
+    unknown: rows.filter(r=>r.statusGroup==='unknown').length,
+  };
+}
+
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+function renderCharts(rows){
+  const gridColor = cssVar('--border-soft');
+  const textColor = cssVar('--text-dim');
+  Chart.defaults.color = textColor;
+  Chart.defaults.font.family = "'Inter',sans-serif";
+
+  // status donut
+  const sc = statusCounts(rows);
+  destroyChart('status');
+  State.charts.status = new Chart($('#chartStatus'), {
+    type:'doughnut',
+    data:{ labels:['Closed','Open/Pending','Escalated','Not verified'],
+      datasets:[{ data:[sc.closed, sc.open, sc.escalated, sc.unknown],
+        backgroundColor:[cssVar('--green'),cssVar('--amber'),cssVar('--red'),cssVar('--slate')],
+        borderWidth:0 }]},
+    options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10, padding:14, font:{size:11}}}}, cutout:'68%' }
+  });
+
+  // by process
+  const byProcess = groupBy(rows, 'task');
+  const procLabels = [...byProcess.keys()];
+  destroyChart('process');
+  State.charts.process = new Chart($('#chartProcess'), {
+    type:'bar',
+    data:{ labels:procLabels, datasets:[{ label:'Tickets', data:procLabels.map(l=>byProcess.get(l).length),
+      backgroundColor: cssVar('--brand'), borderRadius:5, maxBarThickness:28 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{
+      x:{grid:{display:false}, ticks:{font:{size:10.5}}},
+      y:{grid:{color:gridColor}, beginAtZero:true, ticks:{precision:0}}
+    }}
+  });
+
+  // by auditor stacked
+  const byAud = groupBy(rows, 'associate');
+  const audLabels = [...byAud.keys()].sort((a,b)=>byAud.get(b).length-byAud.get(a).length);
+  destroyChart('auditor');
+  const mk = (group,color)=>({ label:group, data:audLabels.map(l=>statusCounts(byAud.get(l))[group.toLowerCase().replace('/','').split(' ')[0]] ?? 0), backgroundColor:color, stack:'s' });
+  State.charts.auditor = new Chart($('#chartAuditor'), {
+    type:'bar',
+    data:{ labels:audLabels, datasets:[
+      { label:'Closed', data:audLabels.map(l=>statusCounts(byAud.get(l)).closed), backgroundColor:cssVar('--green'), stack:'s' },
+      { label:'Open', data:audLabels.map(l=>statusCounts(byAud.get(l)).open), backgroundColor:cssVar('--amber'), stack:'s' },
+      { label:'Escalated', data:audLabels.map(l=>statusCounts(byAud.get(l)).escalated), backgroundColor:cssVar('--red'), stack:'s' },
+      { label:'Not verified', data:audLabels.map(l=>statusCounts(byAud.get(l)).unknown), backgroundColor:cssVar('--slate'), stack:'s' },
+    ]},
+    options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10, padding:14, font:{size:11}}}},
+      scales:{ x:{stacked:true, grid:{display:false}, ticks:{font:{size:10.5}}}, y:{stacked:true, grid:{color:gridColor}, beginAtZero:true, ticks:{precision:0}} } }
+  });
+}
+function destroyChart(k){ if(State.charts[k]){ State.charts[k].destroy(); delete State.charts[k]; } }
+
+function renderAuditorList(rows){
+  const byAud = groupBy(rows, 'associate');
+  const auditors = [...byAud.keys()].sort((a,b)=>byAud.get(b).length-byAud.get(a).length);
+  $('#auditorCountPill').textContent = auditors.length + ' auditors';
+  $('#auditorList').innerHTML = auditors.map(name=>{
+    const rs = byAud.get(name);
+    const sc = statusCounts(rs);
+    const total = rs.length;
+    const rate = total ? Math.round((sc.closed/total)*100) : 0;
+    const pct = k => total ? (sc[k]/total*100) : 0;
+    return `<div class="auditor-row">
+      <div class="auditor-name">${name}<small>${total} TT${total!==1?'s':''}</small></div>
+      <div class="stack-bar">
+        <div class="stack-seg seg-closed" style="width:${pct('closed')}%"></div>
+        <div class="stack-seg seg-open" style="width:${pct('open')}%"></div>
+        <div class="stack-seg seg-escalated" style="width:${pct('escalated')}%"></div>
+        <div class="stack-seg seg-unknown" style="width:${pct('unknown')}%"></div>
+      </div>
+      <div class="auditor-meta">
+        <span><b>${sc.closed}</b> closed</span>
+        <span><b>${sc.open+sc.escalated}</b> open</span>
+        <span><b>${rate}%</b> closure</span>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="icon">👥</div><h3>No auditor data</h3><p>Check that the audit sheet loaded correctly.</p></div>`;
+}
+
+function renderProcessTable(rows){
+  const byProc = groupBy(rows, 'task');
+  const procs = [...byProc.keys()].sort((a,b)=>byProc.get(b).length-byProc.get(a).length);
+  $('#processTable tbody').innerHTML = procs.map(name=>{
+    const rs = byProc.get(name);
+    const sc = statusCounts(rs);
+    const total = rs.length;
+    const rate = total ? Math.round((sc.closed/total)*100) : 0;
+    return `<tr>
+      <td style="font-weight:600;">${name}</td>
+      <td class="mono">${total}</td>
+      <td class="mono" style="color:var(--green)">${sc.closed}</td>
+      <td class="mono" style="color:var(--amber)">${sc.open+sc.escalated}</td>
+      <td class="mono" style="color:var(--slate)">${sc.unknown}</td>
+      <td class="mono">${rate}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAll(){
+  const rows = State.rows.map(mergedRow);
+  renderStatRow(rows);
+  renderCharts(rows);
+  renderAuditorList(rows);
+  renderProcessTable(rows);
+  $('#cacheCountPill').textContent = Object.keys(State.cache).length + ' tickets tracked';
+  renderCheckerTable();
+}
+
+/* ================================================================
+   CHECKER TABLE
+   ================================================================ */
+function currentCheckerRows(){
+  const q = ($('#ticketSearch').value || '').toLowerCase();
+  const statusF = $('#statusFilter').value;
+  let rows = State.checkerRows.length ? State.checkerRows : State.rows.map(mergedRow);
+  if(q) rows = rows.filter(r => [r.shortId,r.associate,r.task].join(' ').toLowerCase().includes(q));
+  if(statusF) rows = rows.filter(r => r.statusGroup === statusF);
+  const {key, dir} = State.sort;
+  rows = [...rows].sort((a,b)=>{
+    const av = a[key]||'', bv = b[key]||'';
+    return av > bv ? dir : av < bv ? -dir : 0;
+  });
+  return rows;
+}
+
+function renderCheckerTable(){
+  const rows = currentCheckerRows();
+  $('#ticketEmptyState').classList.toggle('hidden', rows.length>0);
+  $('#ticketTableBody').innerHTML = rows.map(r=>{
+    const label = r._checking ? 'Checking…' : (r.statusGroup==='unknown' ? 'Not verified' : (r.status || r.statusGroup));
+    const group = r._checking ? 'checking' : r.statusGroup;
+    return `<tr data-id="${r.shortId}">
+      <td class="id-cell"><a href="${CONFIG.TICKET_BASE_URL}${r.shortId}" target="_blank" rel="noopener">${r.shortId} ↗</a></td>
+      <td>${r.associate}</td>
+      <td>${r.task}</td>
+      <td>${badgeHTML(group, label, r.manual)}</td>
+      <td class="mono" style="color:var(--text-dim)">${r.closureCode || '—'}</td>
+      <td class="mono" style="color:${r.severity==='5'||r.severity==5?'var(--red)':'var(--text-dim)'}">${r.severity || '—'}</td>
+      <td class="mono" style="color:var(--text-faint)">${r.checkedAt ? fmtTime(r.checkedAt) : '—'}</td>
+      <td>
+        <div class="row-actions">
+          <select class="status-select" data-manual-for="${r.shortId}">
+            <option value="">set…</option>
+            <option value="closed">Closed</option>
+            <option value="open">Open</option>
+            <option value="escalated">Escalated</option>
+          </select>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  $all('[data-manual-for]').forEach(sel=>{
+    sel.addEventListener('change', e=>{
+      const id = e.target.dataset.manualFor;
+      const val = e.target.value;
+      if(!val) return;
+      setManualStatus(id, val);
+    });
+  });
+}
+
+function setManualStatus(id, group){
+  const labelMap = {closed:'Closed (manual)', open:'Open (manual)', escalated:'Escalated (manual)'};
+  State.cache[id] = { ...(State.cache[id]||{}), status: labelMap[group], statusGroup: group, checkedAt: nowISO(), manual: true };
+  saveCache();
+  toast(`${id} marked ${group} manually`);
+  renderAll();
+}
+
+$('#ticketSearch').addEventListener('input', debounce(renderCheckerTable, 150));
+$('#statusFilter').addEventListener('change', renderCheckerTable);
+$all('#ticketTable thead th[data-sort]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.sort;
+    State.sort.dir = (State.sort.key === key) ? -State.sort.dir : 1;
+    State.sort.key = key;
+    renderCheckerTable();
+  });
+});
+
+$('#exportCsvBtn').addEventListener('click', ()=>{
+  const rows = currentCheckerRows();
+  const header = ['Ticket ID','Auditor','Process','Status','Closure Code','Severity','Checked At'];
+  const lines = [header.join(',')].concat(rows.map(r=>[r.shortId,r.associate,r.task,r.status||r.statusGroup,r.closureCode,r.severity,r.checkedAt||''].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')));
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ticket-pulse-export.csv';
+  a.click();
+});
+
+$('#downloadHelperBtn').addEventListener('click', ()=>{
+  const blob = new Blob([buildHelperScriptSource()], {type:'text/javascript'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ticket-pulse-helper.user.js';
+  a.click();
+  toast('Downloaded — open it in Tampermonkey to install');
+});
+
+/* ================================================================
+   TICKET INPUT / LOAD FROM SHEET
+   ================================================================ */
+$('#loadFromSheetBtn').addEventListener('click', ()=>{
+  const ids = [...new Set(State.rows.map(r=>r.shortId))];
+  $('#ticketInput').value = ids.join('\n');
+  toast(`Loaded ${ids.length} ticket IDs from the audit sheet`);
+});
+$('#clearInputBtn').addEventListener('click', ()=>{ $('#ticketInput').value=''; });
+
+function parseTicketInput(){
+  return [...new Set($('#ticketInput').value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean))];
+}
+
+/* ================================================================
+   LIVE CHECK ENGINE (popup relay + userscript)
+   ================================================================ */
+let helperSeen = false;
+window.addEventListener('message', (ev)=>{
+  if(!ev.data || ev.data.source !== 'TICKET_PULSE_HELPER') return;
+  helperSeen = true;
+  $('#helperStatusText').textContent = 'detected and active ✓';
+  $('#helperBanner').classList.add('ok');
+  const p = ev.data.payload || {};
+  if(!p.id) return;
+  State.cache[p.id] = {
+    status: p.status || 'Unknown', statusGroup: classifyStatus(p.status || ''),
+    closureCode: p.closureCode || '', rootCause: p.rootCause || '', severity: p.severity || '',
+    priority: p.priority || '', category: p.category || '', group: p.group || '',
+    checkedAt: nowISO(), manual: false
+  };
+  saveCache();
+  onLiveResult(p.id);
+});
+
+function updateProgress(done, total){
+  $('#progressWrap').classList.toggle('hidden', total===0);
+  $('#progressFill').style.width = total ? (done/total*100)+'%' : '0%';
+  $('#progressLabel').textContent = `${done} / ${total}`;
+}
+
+let liveResolve = null;
+function onLiveResult(id){
+  if(liveResolve && State.liveQueue[0] === id) liveResolve(true);
+}
+
+async function startLiveCheck(){
+  const ids = parseTicketInput();
+  if(!ids.length){ toast('Paste at least one ticket ID first', 'warn'); return; }
+
+  // build checker rows immediately so the table shows something to watch
+  State.checkerRows = ids.map(id=>{
+    const sheetRow = State.rows.find(r=>r.shortId===id) || { shortId:id, associate:'—', task:'—' };
+    const m = mergedRow(sheetRow);
+    m._checking = true;
+    return m;
+  });
+  renderCheckerTable();
+
+  const win = window.open('', 'tp_ticket_checker', 'width=1200,height=900');
+  if(!win){
+    toast('Popup blocked — allow popups for this site to run a live check', 'error');
+    return;
+  }
+  State.liveWindow = win;
+  State.liveQueue = [...ids];
+
+  let done = 0;
+  updateProgress(0, ids.length);
+  $('#startCheckBtn').disabled = true;
+
+  for(const id of ids){
+    State.liveQueue[0] = id;
+    win.location.href = CONFIG.TICKET_BASE_URL + id;
+    const got = await new Promise(resolve=>{
+      liveResolve = resolve;
+      setTimeout(()=>resolve(false), 9000); // timeout fallback
+    });
+    if(!got){
+      State.checkerRows = State.checkerRows.map(r=> r.shortId===id ? {...mergedRow(State.rows.find(x=>x.shortId===id)||{shortId:id,associate:'—',task:'—'}), statusGroup: State.cache[id]?classifyStatus(State.cache[id].status):'unknown'} : r);
+    } else {
+      const sheetRow = State.rows.find(r=>r.shortId===id) || { shortId:id, associate:'—', task:'—' };
+      State.checkerRows = State.checkerRows.map(r=> r.shortId===id ? mergedRow(sheetRow) : r);
+    }
+    State.liveQueue.shift();
+    done++;
+    updateProgress(done, ids.length);
+    renderCheckerTable();
+    renderAll();
+  }
+
+  win.close();
+  $('#startCheckBtn').disabled = false;
+  if(!helperSeen){
+    toast('No response from the helper userscript — install it (see Setup tab) or set statuses manually below', 'warn');
+  } else {
+    toast(`Live check complete — ${ids.length} ticket(s) processed`);
+  }
+}
+$('#startCheckBtn').addEventListener('click', startLiveCheck);
+
+/* ================================================================
+   REFRESH
+   ================================================================ */
+async function refreshData(showToast=true){
+  try{
+    State.rows = await fetchAuditData();
+    renderAll();
+    $('#lastRefreshed').textContent = new Date().toLocaleString();
+    if(showToast) toast(`Sheet refreshed — ${State.rows.length} rows loaded`);
+  }catch(err){
+    toast('Could not load the audit workbook — make sure its file name in GitHub exactly matches CONFIG.AUDIT_DATA_URL at the top of the script', 'error');
+    console.error(err);
+  }
+}
+$('#refreshBtn').addEventListener('click', ()=>refreshData(true));
+$('#autoRefreshMinLabel').textContent = CONFIG.AUTO_REFRESH_MINUTES;
+$('#autoRefreshToggle').addEventListener('change', e=>{
+  clearInterval(State.autoTimer);
+  if(e.target.checked) startAutoRefresh();
+});
+function startAutoRefresh(){
+  State.autoTimer = setInterval(()=>refreshData(false), CONFIG.AUTO_REFRESH_MINUTES*60*1000);
+}
+
+/* ================================================================
+   BOOT
+   ================================================================ */
+(async function boot(){
+  await refreshData(false);
+  startAutoRefresh();
+})();
+</script>
+</body>
+</html>
