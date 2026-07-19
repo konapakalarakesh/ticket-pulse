@@ -1,879 +1,791 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Ticket Pulse - Audit TT Control Tower</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #0f172a;
-  color: #e2e8f0;
-  min-height: 100vh;
-  padding: 20px;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Pulse · Audit TT Control Tower</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a1a;
+            --bg2: #111128;
+            --card: #161640;
+            --hover: #1c1c50;
+            --accent: #00d4ff;
+            --glow: rgba(0,212,255,.15);
+            --green: #00e68a;
+            --yellow: #fbbf24;
+            --red: #ff5757;
+            --purple: #a78bfa;
+            --orange: #fb923c;
+            --text: #f0f0f0;
+            --dim: #8892b0;
+            --border: rgba(100,120,200,.15);
+            --rad: 14px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.5; }
 
-.header {
-  text-align: center;
-  padding: 24px 0;
-  border-bottom: 1px solid #1e293b;
-  margin-bottom: 24px;
-}
-.header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #38bdf8, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.header p { color: #64748b; font-size: 13px; margin-top: 6px; }
-.header .last-update { color: #94a3b8; font-size: 12px; margin-top: 8px; }
+        /* HEADER */
+        .header { position:sticky; top:0; z-index:100; background:rgba(10,10,26,.88); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; }
+        .brand { display:flex; align-items:center; gap:12px; }
+        .brand-icon { width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,var(--accent),#7c3aed); display:grid; place-items:center; font-size:18px; }
+        .brand h1 { font-size:1.25rem; font-weight:700; background:linear-gradient(90deg,var(--accent),#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .brand small { display:block; font-size:.7rem; color:var(--dim); letter-spacing:.5px; }
+        .header-right { display:flex; align-items:center; gap:14px; }
+        .live-badge { display:flex; align-items:center; gap:6px; font-size:.75rem; color:var(--green); }
+        .live-badge::before { content:''; width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; }
+        @keyframes pulse { 50%{opacity:.4;transform:scale(1.4)} }
+        #refreshTime { font-size:.72rem; color:var(--dim); }
 
-/* Quick Check Section */
-.quick-check {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.quick-check label { color: #94a3b8; font-size: 13px; font-weight: 500; }
-.quick-check input {
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 6px;
-  padding: 8px 14px;
-  color: #e2e8f0;
-  font-size: 13px;
-  width: 300px;
-  outline: none;
-}
-.quick-check input:focus { border-color: #38bdf8; }
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-primary { background: #3b82f6; color: white; }
-.btn-primary:hover { background: #2563eb; }
-.btn-success { background: #10b981; color: white; }
-.btn-success:hover { background: #059669; }
-.btn-secondary { background: #334155; color: #e2e8f0; }
-.btn-secondary:hover { background: #475569; }
-.btn-sm { padding: 5px 10px; font-size: 11px; }
+        /* BUTTONS */
+        .btn { padding:9px 18px; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; transition:all .2s; }
+        .btn-accent { background:linear-gradient(135deg,var(--accent),#7c3aed); color:#fff; }
+        .btn-accent:hover { box-shadow:0 4px 20px var(--glow); transform:translateY(-1px); }
+        .btn-ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
+        .btn-ghost:hover { border-color:var(--accent); color:var(--text); }
 
-/* Summary Cards */
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
-}
-.stat-card {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 18px;
-  text-align: center;
-  border: 1px solid #334155;
-  transition: transform 0.15s ease;
-}
-.stat-card:hover { transform: translateY(-2px); }
-.stat-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-card .value { font-size: 28px; font-weight: 700; font-family: monospace; margin: 6px 0; }
-.stat-card.total .value { color: #38bdf8; }
-.stat-card.resolved .value { color: #10b981; }
-.stat-card.open .value { color: #f59e0b; }
-.stat-card.pending .value { color: #f97316; }
-.stat-card.auditors .value { color: #a78bfa; }
-.stat-card.resolution .value { color: #34d399; }
+        /* MAIN */
+        .main { max-width:1520px; margin:0 auto; padding:28px 32px; }
 
-/* Controls */
-.controls {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.controls select {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 6px;
-  padding: 8px 12px;
-  color: #e2e8f0;
-  font-size: 13px;
-  outline: none;
-}
-.controls select:focus { border-color: #38bdf8; }
+        /* KPI */
+        .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin-bottom:28px; }
+        .kpi { background:var(--card); border:1px solid var(--border); border-radius:var(--rad); padding:20px; position:relative; overflow:hidden; }
+        .kpi::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+        .kpi:nth-child(1)::after{background:var(--accent)} .kpi:nth-child(2)::after{background:var(--green)} .kpi:nth-child(3)::after{background:var(--yellow)} .kpi:nth-child(4)::after{background:var(--purple)} .kpi:nth-child(5)::after{background:var(--orange)} .kpi:nth-child(6)::after{background:var(--red)}
+        .kpi-label { font-size:.72rem; color:var(--dim); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+        .kpi-value { font-size:1.7rem; font-weight:700; }
+        .kpi:nth-child(1) .kpi-value{color:var(--accent)} .kpi:nth-child(2) .kpi-value{color:var(--green)} .kpi:nth-child(3) .kpi-value{color:var(--yellow)} .kpi:nth-child(4) .kpi-value{color:var(--purple)} .kpi:nth-child(5) .kpi-value{color:var(--orange)} .kpi:nth-child(6) .kpi-value{color:var(--red)}
 
-/* Status Filters */
-.filter-pills {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.pill {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid #334155;
-  background: #1e293b;
-  color: #94a3b8;
-  transition: all 0.15s ease;
-}
-.pill:hover, .pill.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        /* TABS */
+        .tabs { display:flex; gap:2px; background:var(--bg2); border-radius:10px; padding:4px; margin-bottom:24px; overflow-x:auto; }
+        .tab { padding:10px 18px; border-radius:8px; font-size:.85rem; font-weight:500; color:var(--dim); cursor:pointer; white-space:nowrap; transition:all .2s; }
+        .tab.active { background:var(--card); color:var(--accent); }
+        .tab:hover:not(.active) { color:var(--text); }
+        .panel { display:none; }
+        .panel.active { display:block; }
 
-/* Auditor Cards */
-.auditor-section {
-  margin-bottom: 24px;
-}
-.auditor-section h2 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 14px;
-  color: #e2e8f0;
-}
-.auditor-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-}
-.auditor-card {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 14px 16px;
-  border: 1px solid #334155;
-}
-.auditor-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.auditor-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #38bdf8;
-}
-.auditor-task {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 2px;
-}
-.auditor-stats {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.auditor-stat {
-  font-size: 11px;
-  color: #94a3b8;
-}
-.auditor-stat span { font-weight: 700; font-family: monospace; }
-.auditor-stat.resolved span { color: #10b981; }
-.auditor-stat.open span { color: #f59e0b; }
-.auditor-stat.pending span { color: #f97316; }
-.auditor-stat.total span { color: #38bdf8; }
+        /* CARD */
+        .card { background:var(--card); border:1px solid var(--border); border-radius:var(--rad); padding:24px; margin-bottom:24px; }
+        .card-title { font-size:1.05rem; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
 
-/* Progress Bar */
-.progress-bar {
-  height: 4px;
-  background: #334155;
-  border-radius: 4px;
-  margin-top: 10px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #10b981, #34d399);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
+        /* CHECKER */
+        .checker-area { display:flex; gap:12px; flex-wrap:wrap; }
+        .checker-area textarea { flex:1; min-width:260px; min-height:100px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px; resize:vertical; color:var(--text); font-family:'Courier New',monospace; font-size:.85rem; }
+        .checker-area textarea:focus { outline:none; border-color:var(--accent); }
+        .checker-btns { display:flex; flex-direction:column; gap:8px; }
 
-/* Ticket Table */
-.table-container {
-  background: #1e293b;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  overflow-x: auto;
-  margin-bottom: 24px;
-}
-.table-container h2 {
-  padding: 16px 20px 12px;
-  font-size: 15px;
-  font-weight: 600;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-th {
-  text-align: left;
-  color: #64748b;
-  font-weight: 500;
-  padding: 10px 14px;
-  border-bottom: 1px solid #334155;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-td {
-  padding: 10px 14px;
-  color: #cbd5e1;
-  border-bottom: 1px solid #1e293b;
-}
-tr:hover td { background: #0f172a; }
+        /* PROGRESS */
+        .progress-wrap { margin:14px 0; }
+        .progress-bar { height:6px; background:var(--bg2); border-radius:3px; overflow:hidden; }
+        .progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--green)); transition:width .4s; }
+        .progress-text { font-size:.72rem; color:var(--dim); margin-top:4px; }
 
-/* Status Badges */
-.badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.badge-resolved { background: #064e3b; color: #6ee7b7; }
-.badge-open { background: #78350f; color: #fcd34d; }
-.badge-pending { background: #7c2d12; color: #fdba74; }
-.badge-wip { background: #1e1b4b; color: #a5b4fc; }
-.badge-unknown { background: #1e293b; color: #64748b; }
-.badge-assigned { background: #172554; color: #93c5fd; }
+        /* TABLE */
+        .table-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--border); }
+        table { width:100%; border-collapse:collapse; font-size:.84rem; }
+        th { background:var(--bg2); padding:12px 14px; text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); font-weight:600; position:sticky; top:0; z-index:2; }
+        td { padding:10px 14px; border-top:1px solid var(--border); }
+        tr:hover td { background:var(--hover); }
 
-/* Loading Spinner */
-.spinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid #334155;
-  border-top-color: #38bdf8;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+        /* BADGES */
+        .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:600; }
+        .badge-resolved { background:rgba(0,230,138,.12); color:var(--green); }
+        .badge-open { background:rgba(251,191,36,.12); color:var(--yellow); }
+        .badge-pending { background:rgba(167,139,250,.12); color:var(--purple); }
+        .badge-unknown { background:rgba(136,146,176,.12); color:var(--dim); }
+        .badge-checking { background:rgba(0,212,255,.08); color:var(--accent); }
+        .badge-error { background:rgba(255,87,87,.12); color:var(--red); }
+        .link-tt { color:var(--accent); text-decoration:none; font-family:monospace; }
+        .link-tt:hover { text-decoration:underline; }
 
-/* Notification */
-.notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 12px 18px;
-  font-size: 13px;
-  z-index: 1000;
-  display: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-.notification.success { border-color: #10b981; }
-.notification.error { border-color: #ef4444; }
+        /* CHARTS */
+        .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+        .chart-box { background:var(--card); border:1px solid var(--border); border-radius:var(--rad); padding:20px; }
+        .chart-box h3 { font-size:.9rem; color:var(--dim); margin-bottom:12px; }
+        canvas { max-height:280px; }
 
-/* Charts Section */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.chart-card {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 18px;
-  border: 1px solid #334155;
-}
-.chart-card h3 {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: #94a3b8;
-}
-.chart-bar-group { margin-bottom: 8px; }
-.chart-bar-label {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-bottom: 3px;
-  display: flex;
-  justify-content: space-between;
-}
-.chart-bar {
-  height: 8px;
-  background: #334155;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.chart-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.6s ease;
-}
+        /* AUDITOR GRID */
+        .auditor-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+        .auditor-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:18px; transition:all .2s; }
+        .auditor-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+        .auditor-name { font-weight:600; font-size:.95rem; }
+        .auditor-process { font-size:.75rem; color:var(--dim); margin-bottom:10px; }
+        .auditor-metrics { display:flex; gap:10px; }
+        .auditor-metric { flex:1; text-align:center; padding:8px 4px; background:var(--bg); border-radius:8px; }
+        .auditor-metric-val { font-size:1.1rem; font-weight:700; }
+        .auditor-metric-lbl { font-size:.65rem; color:var(--dim); text-transform:uppercase; }
+        .auditor-bar { margin-top:10px; }
+        .auditor-bar-track { height:5px; background:var(--bg); border-radius:3px; }
+        .auditor-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--green),var(--accent)); }
+        .auditor-bar-label { font-size:.7rem; color:var(--dim); text-align:right; margin-top:3px; }
 
-/* Data Source Config */
-.config-section {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  border: 1px solid #334155;
-}
-.config-section label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px; }
-.config-section input {
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 6px;
-  padding: 8px 12px;
-  color: #e2e8f0;
-  font-size: 12px;
-  width: 100%;
-  margin-bottom: 10px;
-  outline: none;
-}
-.config-section input:focus { border-color: #38bdf8; }
+        /* FILTER */
+        .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+        .filter-bar select, .filter-bar input { padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:.82rem; }
+        .filter-bar select:focus, .filter-bar input:focus { outline:none; border-color:var(--accent); }
 
-.instructions {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 16px 20px;
-  border: 1px solid #334155;
-  margin-bottom: 20px;
-}
-.instructions h3 { font-size: 14px; margin-bottom: 8px; color: #f59e0b; }
-.instructions p, .instructions li { font-size: 12px; color: #94a3b8; line-height: 1.6; }
-.instructions ol { padding-left: 18px; }
-</style>
+        /* TOAST */
+        .toast { position:fixed; bottom:24px; right:24px; background:var(--card); border:1px solid var(--accent); border-radius:10px; padding:14px 22px; box-shadow:0 8px 32px rgba(0,212,255,.15); font-size:.88rem; z-index:2000; transform:translateY(80px); opacity:0; transition:all .35s ease; }
+        .toast.show { transform:translateY(0); opacity:1; }
+
+        /* RESPONSIVE */
+        @media(max-width:768px) { .header{padding:14px 16px} .main{padding:16px} .charts-grid{grid-template-columns:1fr} .kpi-row{grid-template-columns:repeat(2,1fr)} .checker-area{flex-direction:column} }
+        ::-webkit-scrollbar{width:6px;height:6px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>⚡ Ticket Pulse — Audit TT Control Tower</h1>
-  <p>GCO Matching Operations • Live Ticket Status Dashboard</p>
-  <div class="last-update">Last Refreshed: <span id="lastRefresh">Not yet refreshed</span> • Tickets Loaded: <span id="ticketCount">0</span></div>
-</div>
+<!-- HEADER -->
+<header class="header">
+    <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div><h1>Ticket Pulse</h1><small>AUDIT TT CONTROL TOWER</small></div>
+    </div>
+    <div class="header-right">
+        <div>
+            <div class="live-badge" id="connBadge">LIVE</div>
+            <div id="refreshTime">—</div>
+        </div>
+        <button class="btn btn-ghost" onclick="exportCSV()">📥 Export</button>
+        <button class="btn btn-accent" onclick="checkAllTickets()">🚀 Check All</button>
+    </div>
+</header>
 
-<div class="instructions">
-  <h3>⚙️ Setup Instructions</h3>
-  <ol>
-    <li>Upload your audit Excel as <strong>CSV</strong> to your GitHub repo (path: <code>data/audit.csv</code>)</li>
-    <li>Set the correct GitHub raw CSV URL below</li>
-    <li>Make sure you are on <strong>corpnet</strong> with active <strong>Midway session</strong> (run <code>mwinit</code>)</li>
-    <li>Click <strong>"Load Sheet & Check All"</strong> to fetch live statuses</li>
-    <li>Use per-auditor refresh buttons to selectively refresh</li>
-  </ol>
-</div>
+<!-- MAIN -->
+<main class="main">
 
-<div class="config-section">
-  <label>GitHub Raw CSV URL (your audit data):</label>
-  <input type="text" id="csvUrl" placeholder="https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/data/audit.csv" />
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <button class="btn btn-primary" onclick="loadFromGitHub()">📥 Load Sheet</button>
-    <button class="btn btn-success" onclick="checkAllTickets()">🔄 Check All (Live Status)</button>
-    <button class="btn btn-secondary" onclick="exportCSV()">📤 Export Results</button>
-  </div>
-</div>
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">Total Tickets</div><div class="kpi-value" id="kTotal">—</div></div>
+        <div class="kpi"><div class="kpi-label">Resolved</div><div class="kpi-value" id="kResolved">—</div></div>
+        <div class="kpi"><div class="kpi-label">Open</div><div class="kpi-value" id="kOpen">—</div></div>
+        <div class="kpi"><div class="kpi-label">Pending</div><div class="kpi-value" id="kPending">—</div></div>
+        <div class="kpi"><div class="kpi-label">Auditors</div><div class="kpi-value" id="kAuditors">—</div></div>
+        <div class="kpi"><div class="kpi-label">Resolution %</div><div class="kpi-value" id="kRate">—</div></div>
+    </div>
 
-<!-- Quick Single Ticket Check -->
-<div class="quick-check">
-  <label>Quick Check TT ID:</label>
-  <input type="text" id="singleTTInput" placeholder="Enter Ticket ID (e.g[US_PASSPORT_NUMBER]666)" />
-  <button class="btn btn-primary" onclick="checkSingleTicket()">Check Status</button>
-  <span id="singleResult" style="font-size:12px; color:#94a3b8;"></span>
-</div>
+    <!-- TABS -->
+    <div class="tabs">
+        <div class="tab active" data-tab="checker">🔍 Quick Check</div>
+        <div class="tab" data-tab="analytics">📊 Analytics</div>
+        <div class="tab" data-tab="auditors">👥 Auditors</div>
+        <div class="tab" data-tab="tickets">📋 All Tickets</div>
+    </div>
 
-<!-- Summary Cards -->
-<div class="summary-grid">
-  <div class="stat-card total"><div class="label">Total Tickets</div><div class="value" id="statTotal">0</div></div>
-  <div class="stat-card resolved"><div class="label">Resolved</div><div class="value" id="statResolved">0</div></div>
-  <div class="stat-card open"><div class="label">Open</div><div class="value" id="statOpen">0</div></div>
-  <div class="stat-card pending"><div class="label">Pending</div><div class="value" id="statPending">0</div></div>
-  <div class="stat-card auditors"><div class="label">Auditors</div><div class="value" id="statAuditors">0</div></div>
-  <div class="stat-card resolution"><div class="label">Resolution %</div><div class="value" id="statResolution">0%</div></div>
-</div>
+    <!-- PANEL: QUICK CHECK -->
+    <div class="panel active" id="panel-checker">
+        <div class="card">
+            <div class="card-title"><span>⚡</span> Quick Ticket Status Check</div>
+            <p style="color:var(--dim);font-size:.88rem;margin-bottom:14px">Paste TT IDs below (one per line or comma-separated). Fetches live status from t.corp via your authenticated Midway session.</p>
+            <div class="checker-area">
+                <textarea id="ttInput" placeholder="D209619666&#10;D492282767&#10;P473222076&#10;&#10;Or comma-separated: D209619666, D492282767"></textarea>
+                <div class="checker-btns">
+                    <button class="btn btn-accent" onclick="runQuickCheck()">⚡ Check Status</button>
+                    <button class="btn btn-ghost" onclick="loadSheetIDs()">📥 Load from Sheet</button>
+                    <button class="btn btn-ghost" onclick="clearChecker()">🗑️ Clear</button>
+                </div>
+            </div>
+            <div class="progress-wrap" id="checkProgress" style="display:none">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                <div class="progress-text" id="progressText">0 / 0</div>
+            </div>
+        </div>
+        <div class="card" id="quickResultsCard" style="display:none">
+            <div class="card-title"><span>📋</span> Results <span id="resultCount" style="font-size:.8rem;color:var(--dim);font-weight:400"></span></div>
+            <div class="filter-bar">
+                <input type="text" id="resultSearch" placeholder="Search ID..." oninput="filterResults()">
+                <select id="resultFilter" onchange="filterResults()">
+                    <option value="all">All</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="open">Open</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+            <div class="table-wrap" style="max-height:500px;overflow-y:auto">
+                <table>
+                    <thead><tr><th>#</th><th>Ticket ID</th><th>Status</th><th>Time</th><th>Link</th></tr></thead>
+                    <tbody id="quickResultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<!-- Filters -->
-<div class="controls">
-  <select id="filterAuditor" onchange="renderAll()">
-    <option value="all">All Auditors</option>
-  </select>
-  <select id="filterTask" onchange="renderAll()">
-    <option value="all">All Processes</option>
-  </select>
-  <select id="filterStatus" onchange="renderAll()">
-    <option value="all">All Statuses</option>
-    <option value="Closed">Resolved</option>
-    <option value="Open">Open</option>
-    <option value="Pending">Pending</option>
-    <option value="Work In Progress">Work In Progress</option>
-  </select>
-  <select id="filterBucket" onchange="renderAll()">
-    <option value="all">All Buckets</option>
-  </select>
-</div>
+    <!-- PANEL: ANALYTICS -->
+    <div class="panel" id="panel-analytics">
+        <div class="charts-grid">
+            <div class="chart-box"><h3>📊 Status Distribution</h3><canvas id="chartStatus"></canvas></div>
+            <div class="chart-box"><h3>📈 Tickets by Process</h3><canvas id="chartProcess"></canvas></div>
+            <div class="chart-box"><h3>🎯 Top Auditors</h3><canvas id="chartAuditor"></canvas></div>
+            <div class="chart-box"><h3>📦 Bucket Distribution</h3><canvas id="chartBucket"></canvas></div>
+        </div>
+        <div class="card">
+            <div class="card-title"><span>📋</span> Process Breakdown</div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Process</th><th>Total</th><th>Resolved</th><th>Open</th><th>Pending</th><th>Rate</th></tr></thead>
+                    <tbody id="processTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<!-- Charts -->
-<div class="charts-grid" id="chartsSection"></div>
+    <!-- PANEL: AUDITORS -->
+    <div class="panel" id="panel-auditors">
+        <div class="card">
+            <div class="card-title"><span>👥</span> Auditor Performance</div>
+            <div class="filter-bar">
+                <select id="auditorProcessFilter" onchange="renderAuditorGrid()"><option value="all">All Processes</option></select>
+            </div>
+            <div class="auditor-grid" id="auditorGrid"></div>
+        </div>
+    </div>
 
-<!-- Auditor Cards -->
-<div class="auditor-section">
-  <h2>👥 Auditor Performance</h2>
-  <div class="auditor-grid" id="auditorGrid"></div>
-</div>
+    <!-- PANEL: ALL TICKETS -->
+    <div class="panel" id="panel-tickets">
+        <div class="card">
+            <div class="card-title"><span>📋</span> Full Ticket List</div>
+            <div class="filter-bar">
+                <input type="text" id="ticketSearch" placeholder="Search..." oninput="renderTicketTable()">
+                <select id="ticketProcessFilter" onchange="renderTicketTable()"><option value="all">All Processes</option></select>
+                <select id="ticketAuditorFilter" onchange="renderTicketTable()"><option value="all">All Auditors</option></select>
+                <select id="ticketStatusFilter" onchange="renderTicketTable()">
+                    <option value="all">All</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="open">Open</option>
+                    <option value="pending">Pending</option>
+                    <option value="unchecked">Not Checked</option>
+                </select>
+            </div>
+            <div class="table-wrap" style="max-height:600px;overflow-y:auto">
+                <table>
+                    <thead><tr><th>#</th><th>Ticket</th><th>Auditor</th><th>Process</th><th>Bucket</th><th>Status</th><th>Time</th></tr></thead>
+                    <tbody id="ticketTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<!-- Ticket Table -->
-<div class="table-container">
-  <h2>📋 Full Ticket List</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Ticket ID</th>
-        <th>Auditor</th>
-        <th>Process</th>
-        <th>Bucket</th>
-        <th>Status</th>
-        <th>Severity</th>
-        <th>Resolved By</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="ticketTableBody"></tbody>
-  </table>
-</div>
+</main>
 
-<div class="notification" id="notification"></div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-// ============== GLOBAL STATE ==============
-let allTickets = [];
-let ticketStatuses = {};
+(function() {
+    'use strict';
 
-// ============== CONFIGURATION ==============
-const SIMT_URL = "https://t.corp.amazon.com";
+    // ═══ CONFIG ═══
+    var CONFIG = {
+        TICKET_BASE: 'https://t.corp.amazon.com/',
+        AUDIT_FILE: './Audits.xlsx',
+        CACHE_MIN: 60,
+        BATCH: 3,
+        DELAY: 1200
+    };
 
-// ============== CSV PARSER ==============
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  const data = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-    if (values.length >= 4) {
-      const row = {};
-      headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
-      data.push(row);
-    }
-  }
-  return data;
-}
+    var auditData = [];
+    var statusCache = {};
+    var chartInstances = {};
 
-// ============== LOAD FROM GITHUB ==============
-async function loadFromGitHub() {
-  const url = document.getElementById('csvUrl').value.trim();
-  if (!url) {
-    notify('Please enter your GitHub CSV URL', 'error');
-    return;
-  }
-
-  notify('Loading audit data from GitHub...', 'success');
-
-  try {
-    const response = await fetch(url + '?t=' + Date.now());
-    if (!response.ok) throw new Error('Failed to fetch CSV');
-    const text = await response.text();
-    const data = parseCSV(text);
-
-    allTickets = data.map(row => ({
-      ticket_id: row['ShortId'] || row['shortid'] || row['TicketID'] || row['ticket_id'] || '',
-      auditor: row['Associate'] || row['associate'] || row['Auditor'] || row['auditor'] || '',
-      task: row['Task'] || row['task'] || row['Process'] || row['process'] || '',
-      bucket: row['Bucket'] || row['bucket'] || '',
-      date: row['Date'] || row['date'] || '',
-      status: 'Not Checked',
-      severity: '',
-      resolved_by: '',
-      closure_code: '',
-      last_updated: ''
-    })).filter(t => t.ticket_id && t.ticket_id !== 'nan');
-
-    populateFilters();
-    renderAll();
-    notify(`✅ Loaded ${allTickets.length} tickets from GitHub!`, 'success');
-  } catch (err) {
-    notify('❌ Failed to load: ' + err.message, 'error');
-  }
-}
-
-// ============== FETCH LIVE STATUS ==============
-async function fetchTicketStatus(ticketId) {
-  try {
-    // Method 1: t.corp JSON endpoint
-    const response = await fetch(`${SIMT_URL}/issues/${ticketId}?format=json`, {
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' }
+    // ═══ INIT — DIRECT BOOT, NO AUTH GATE ═══
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCache();
+        setupTabs();
+        toast('⚡ Dashboard ready — authenticate via bat file first');
+        boot();
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        status: data.status || data.Status || 'Unknown',
-        severity: data.severity || data.Severity || '',
-        resolved_by: data.lastResolvedBy || data.resolvedBy || data.resolver || '',
-        closure_code: data.closureCode || '',
-        last_updated: data.lastUpdatedAt || data.updatedAt || '',
-        title: data.title || ''
-      };
+    function boot() {
+        loadAuditSheet();
     }
 
-    // Method 2: Alternative endpoint
-    const resp2 = await fetch(`${SIMT_URL}/${ticketId}`, {
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    if (resp2.ok) {
-      const html = await resp2.text();
-      // Try to parse status from response
-      const statusMatch = html.match(/"status"\s*:\s*"([^"]+)"/);
-      const sevMatch = html.match(/"severity"\s*:\s*"([^"]+)"/);
-      return {
-        status: statusMatch ? statusMatch[1] : 'Unknown',
-        severity: sevMatch ? sevMatch[1] : '',
-        resolved_by: '',
-        closure_code: '',
-        last_updated: '',
-        title: ''
-      };
+    // ═══ TABS ═══
+    function setupTabs() {
+        document.querySelectorAll('.tab').forEach(function(t) {
+            t.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
+                document.querySelectorAll('.panel').forEach(function(x) { x.classList.remove('active'); });
+                t.classList.add('active');
+                document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+            });
+        });
     }
 
-    return null;
-  } catch (err) {
-    console.warn(`Fetch failed for ${ticketId}:`, err.message);
-    return null;
-  }
-}
-
-// ============== CHECK ALL TICKETS ==============
-async function checkAllTickets() {
-  if (allTickets.length === 0) {
-    notify('⚠️ Load your sheet first!', 'error');
-    return;
-  }
-
-  notify(`🔄 Checking ${allTickets.length} tickets... Please wait`, 'success');
-
-  let resolved = 0, failed = 0;
-  const batchSize = 5; // Process 5 at a time
-
-  for (let i = 0; i < allTickets.length; i += batchSize) {
-    const batch = allTickets.slice(i, i + batchSize);
-    const promises = batch.map(async (ticket) => {
-      const result = await fetchTicketStatus(ticket.ticket_id);
-      if (result) {
-        ticket.status = normalizeStatus(result.status);
-        ticket.severity = result.severity;
-        ticket.resolved_by = result.resolved_by;
-        ticket.closure_code = result.closure_code;
-        ticket.last_updated = result.last_updated;
-        resolved++;
-      } else {
-        ticket.status = 'Fetch Failed';
-        failed++;
-      }
-    });
-    await Promise.all(promises);
-
-    // Update UI every batch
-    renderAll();
-    document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
-  }
-
-  document.getElementById('ticketCount').textContent = allTickets.length;
-  notify(`✅ Done! Checked: ${resolved}, Failed: ${failed}`, resolved > 0 ? 'success' : 'error');
-}
-
-// ============== CHECK AUDITOR TICKETS ==============
-async function checkAuditorTickets(auditorName) {
-  const auditorTickets = allTickets.filter(t => t.auditor === auditorName);
-  notify(`🔄 Refreshing ${auditorTickets.length} tickets for ${auditorName}...`, 'success');
-
-  for (const ticket of auditorTickets) {
-    const result = await fetchTicketStatus(ticket.ticket_id);
-    if (result) {
-      ticket.status = normalizeStatus(result.status);
-      ticket.severity = result.severity;
-      ticket.resolved_by = result.resolved_by;
-    } else {
-      ticket.status = 'Fetch Failed';
+    // ═══ LOAD AUDIT EXCEL ═══
+    async function loadAuditSheet() {
+        try {
+            var r = await fetch(CONFIG.AUDIT_FILE, { cache: 'no-cache' });
+            if (!r.ok) throw new Error(r.status);
+            var buf = await r.arrayBuffer();
+            var wb = XLSX.read(buf, { type: 'array', cellDates: true });
+            var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            auditData = rows.map(function(row) {
+                return {
+                    date: row['Date'] || '',
+                    process: row['Process'] || '',
+                    ticketId: (row['Ticket ID'] || row['TT ID'] || '').toString().trim(),
+                    auditor: row['Auditor'] || '',
+                    bucket: row['Bucket'] || ''
+                };
+            }).filter(function(x) { return x.ticketId.length > 0; });
+            toast('📊 Loaded ' + auditData.length + ' tickets from sheet');
+            populateFilters();
+            renderAll();
+        } catch (e) {
+            toast('ℹ️ No Audits.xlsx found — paste IDs manually in Quick Check');
+        }
     }
-  }
 
-  renderAll();
-  document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
-  notify(`✅ ${auditorName}: ${auditorTickets.length} tickets refreshed!`, 'success');
-}
+    // ═══ FETCH TICKET STATUS FROM t.corp ═══
+    async function fetchStatus(id) {
+        id = id.trim();
+        if (!id) return null;
+        var c = getFromCache(id);
+        if (c) return c;
 
-// ============== CHECK SINGLE TICKET ==============
-async function checkSingleTicket() {
-  const id = document.getElementById('singleTTInput').value.trim();
-  if (!id) return;
-
-  document.getElementById('singleResult').innerHTML = '<span class="spinner"></span> Checking...';
-  const result = await fetchTicketStatus(id);
-  if (result) {
-    const badge = getBadgeClass(normalizeStatus(result.status));
-    document.getElementById('singleResult').innerHTML = `<span class="badge ${badge}">${result.status}</span> ${result.severity ? '| ' + result.severity : ''}`;
-  } else {
-    document.getElementById('singleResult').innerHTML = '<span style="color:#ef4444;">❌ Failed - Check Midway session</span>';
-  }
-}
-
-// ============== NORMALIZE STATUS ==============
-function normalizeStatus(status) {
-  if (!status) return 'Unknown';
-  const s = status.toLowerCase();
-  if (s === 'closed' || s === 'resolved') return 'Closed';
-  if (s === 'assigned') return 'Assigned';
-  if (s === 'pending') return 'Pending';
-  if (s === 'work in progress' || s === 'work_in_progress') return 'Work In Progress';
-  if (s === 'researching') return 'Researching';
-  return status;
-}
-
-function getBadgeClass(status) {
-  switch(status) {
-    case 'Closed': return 'badge-resolved';
-    case 'Assigned': return 'badge-assigned';
-    case 'Pending': return 'badge-pending';
-    case 'Work In Progress': case 'Researching': return 'badge-wip';
-    default: return 'badge-unknown';
-  }
-}
-
-function isOpen(status) {
-  return ['Assigned', 'Work In Progress', 'Researching'].includes(status);
-}
-
-// ============== FILTERS ==============
-function populateFilters() {
-  const auditors = [...new Set(allTickets.map(t => t.auditor).filter(Boolean))].sort();
-  const tasks = [...new Set(allTickets.map(t => t.task).filter(Boolean))].sort();
-  const buckets = [...new Set(allTickets.map(t => t.bucket).filter(Boolean))].sort();
-
-  const audSelect = document.getElementById('filterAuditor');
-  audSelect.innerHTML = '<option value="all">All Auditors</option>' + auditors.map(a => `<option value="${a}">${a}</option>`).join('');
-
-  const taskSelect = document.getElementById('filterTask');
-  taskSelect.innerHTML = '<option value="all">All Processes</option>' + tasks.map(t => `<option value="${t}">${t}</option>`).join('');
-
-  const bucketSelect = document.getElementById('filterBucket');
-  bucketSelect.innerHTML = '<option value="all">All Buckets</option>' + buckets.map(b => `<option value="${b}">${b}</option>`).join('');
-}
-
-function getFilteredTickets() {
-  const auditor = document.getElementById('filterAuditor').value;
-  const task = document.getElementById('filterTask').value;
-  const status = document.getElementById('filterStatus').value;
-  const bucket = document.getElementById('filterBucket').value;
-
-  return allTickets.filter(t => {
-    if (auditor !== 'all' && t.auditor !== auditor) return false;
-    if (task !== 'all' && t.task !== task) return false;
-    if (bucket !== 'all' && t.bucket !== bucket) return false;
-    if (status !== 'all') {
-      if (status === 'Open' && !isOpen(t.status)) return false;
-      if (status !== 'Open' && t.status !== status) return false;
+        try {
+            var r = await fetch(CONFIG.TICKET_BASE + id, {
+                credentials: 'include',
+                redirect: 'follow'
+            });
+            if (r.status === 401 || r.status === 403) {
+                return saveToCache(id, { status: 'Auth Required', ts: Date.now() });
+            }
+            if (!r.ok) {
+                return saveToCache(id, { status: 'Error ' + r.status, ts: Date.now() });
+            }
+            var html = await r.text();
+            return saveToCache(id, parseStatus(html));
+        } catch (e) {
+            return saveToCache(id, { status: 'Fetch Error', ts: Date.now() });
+        }
     }
-    return true;
-  });
-}
 
-// ============== RENDER ALL ==============
-function renderAll() {
-  const filtered = getFilteredTickets();
-  renderSummary(filtered);
-  renderCharts(filtered);
-  renderAuditorCards(filtered);
-  renderTable(filtered);
-}
-
-function renderSummary(tickets) {
-  const total = tickets.length;
-  const resolved = tickets.filter(t => t.status === 'Closed').length;
-  const open = tickets.filter(t => isOpen(t.status)).length;
-  const pending = tickets.filter(t => t.status === 'Pending').length;
-  const auditors = new Set(tickets.map(t => t.auditor).filter(Boolean)).size;
-  const pct = total > 0 ? Math.round((resolved / total) * 100) : 0;
-
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statResolved').textContent = resolved;
-  document.getElementById('statOpen').textContent = open;
-  document.getElementById('statPending').textContent = pending;
-  document.getElementById('statAuditors').textContent = auditors;
-  document.getElementById('statResolution').textContent = pct + '%';
-}
-
-function renderCharts(tickets) {
-  const section = document.getElementById('chartsSection');
-
-  // Status Distribution
-  const statuses = {};
-  tickets.forEach(t => { statuses[t.status] = (statuses[t.status] || 0) + 1; });
-
-  // Process Distribution
-  const processes = {};
-  tickets.forEach(t => { if(t.task) processes[t.task] = (processes[t.task] || 0) + 1; });
-
-  const maxStatus = Math.max(...Object.values(statuses), 1);
-  const maxProcess = Math.max(...Object.values(processes), 1);
-
-  const colors = { 'Closed': '#10b981', 'Assigned': '#3b82f6', 'Pending': '#f97316', 'Work In Progress': '#a78bfa', 'Researching': '#38bdf8', 'Not Checked': '#64748b', 'Fetch Failed': '#ef4444', 'Unknown': '#475569' };
-
-  let html = `<div class="chart-card"><h3>📊 Status Distribution</h3>`;
-  Object.entries(statuses).sort((a,b) => b[1]-a[1]).forEach(([status, count]) => {
-    const pct = (count / maxStatus) * 100;
-    const color = colors[status] || '#64748b';
-    html += `<div class="chart-bar-group"><div class="chart-bar-label"><span>${status}</span><span>${count}</span></div><div class="chart-bar"><div class="chart-bar-fill" style="width:${pct}%; background:${color};"></div></div></div>`;
-  });
-  html += `</div>`;
-
-  html += `<div class="chart-card"><h3>📁 Tickets by Process</h3>`;
-  Object.entries(processes).sort((a,b) => b[1]-a[1]).forEach(([proc, count]) => {
-    const pct = (count / maxProcess) * 100;
-    html += `<div class="chart-bar-group"><div class="chart-bar-label"><span>${proc}</span><span>${count}</span></div><div class="chart-bar"><div class="chart-bar-fill" style="width:${pct}%; background:#38bdf8;"></div></div></div>`;
-  });
-  html += `</div>`;
-
-  section.innerHTML = html;
-}
-
-function renderAuditorCards(tickets) {
-  const grid = document.getElementById('auditorGrid');
-  const auditorData = {};
-
-  tickets.forEach(t => {
-    if (!t.auditor) return;
-    if (!auditorData[t.auditor]) auditorData[t.auditor] = { total: 0, resolved: 0, open: 0, pending: 0, task: t.task };
-    auditorData[t.auditor].total++;
-    if (t.status === 'Closed') auditorData[t.auditor].resolved++;
-    if (isOpen(t.status)) auditorData[t.auditor].open++;
-    if (t.status === 'Pending') auditorData[t.auditor].pending++;
-  });
-
-  let html = '';
-  Object.entries(auditorData).sort((a,b) => b[1].total - a[1].total).forEach(([name, data]) => {
-    const pct = data.total > 0 ? Math.round((data.resolved / data.total) * 100) : 0;
-    html += `
-      <div class="auditor-card">
-        <div class="auditor-card-header">
-          <div>
-            <div class="auditor-name">${name}</div>
-            <div class="auditor-task">${data.task || ''}</div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="checkAuditorTickets('${name}')">🔄 Refresh</button>
-        </div>
-        <div class="auditor-stats">
-          <div class="auditor-stat total">Total: <span>${data.total}</span></div>
-          <div class="auditor-stat resolved">Resolved: <span>${data.resolved}</span></div>
-          <div class="auditor-stat open">Open: <span>${data.open}</span></div>
-          <div class="auditor-stat pending">Pending: <span>${data.pending}</span></div>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      </div>`;
-  });
-
-  grid.innerHTML = html;
-}
-
-function renderTable(tickets) {
-  const tbody = document.getElementById('ticketTableBody');
-  let html = '';
-
-  tickets.slice(0, 200).forEach(t => {
-    const badge = getBadgeClass(t.status);
-    html += `<tr>
-      <td><a href="${SIMT_URL}/${t.ticket_id}" target="_blank" style="color:#38bdf8; text-decoration:none;">${t.ticket_id}</a></td>
-      <td>${t.auditor}</td>
-      <td>${t.task}</td>
-      <td>${t.bucket}</td>
-      <td><span class="badge ${badge}">${t.status}</span></td>
-      <td>${t.severity || '-'}</td>
-      <td>${t.resolved_by || '-'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="refreshSingleInTable('${t.ticket_id}')">↻</button></td>
-    </tr>`;
-  });
-
-  if (tickets.length > 200) {
-    html += `<tr><td colspan="8" style="text-align:center; color:#64748b;">Showing 200 of ${tickets.length} tickets. Use filters to narrow.</td></tr>`;
-  }
-
-  tbody.innerHTML = html;
-}
-
-// ============== REFRESH SINGLE IN TABLE ==============
-async function refreshSingleInTable(ticketId) {
-  const result = await fetchTicketStatus(ticketId);
-  if (result) {
-    const ticket = allTickets.find(t => t.ticket_id === ticketId);
-    if (ticket) {
-      ticket.status = normalizeStatus(result.status);
-      ticket.severity = result.severity;
-      ticket.resolved_by = result.resolved_by;
-      renderAll();
+    function parseStatus(html) {
+        var res = { status: 'Unknown', ts: Date.now() };
+        var patterns = [
+            /"status"\s*:\s*"([^"]+)"/i,
+            /"state"\s*:\s*"([^"]+)"/i,
+            /Status<\/[^>]+>\s*<[^>]+>([^<]+)/i,
+            /<span[^>]*status[^>]*>([^<]+)/i,
+            /data-status=["']([^"']+)/i,
+            /"resolution"\s*:\s*"([^"]+)"/i,
+            /class="status[^"]*"[^>]*>([^<]+)/i,
+            /Status:\s*<[^>]+>([^<]+)/i
+        ];
+        for (var i = 0; i < patterns.length; i++) {
+            var m = html.match(patterns[i]);
+            if (m && m[1]) {
+                res.status = normalize(m[1].trim());
+                return res;
+            }
+        }
+        var kw = html.match(/\b(Resolved|Closed|Open|Assigned|Pending|Work In Progress|Cancelled|Deferred|Fixed|Done)\b/i);
+        if (kw) res.status = normalize(kw[1]);
+        return res;
     }
-  }
-}
 
-// ============== EXPORT CSV ==============
-function exportCSV() {
-  if (allTickets.length === 0) return;
-  let csv = 'Ticket ID,Auditor,Process,Bucket,Status,Severity,Resolved By\n';
-  allTickets.forEach(t => {
-    csv += `${t.ticket_id},${t.auditor},${t.task},${t.bucket},${t.status},${t.severity},${t.resolved_by}\n`;
-  });
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `ticket_status_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-}
+    function normalize(s) {
+        var l = s.toLowerCase();
+        if (/resolved|closed|fixed|done|complete/.test(l)) return 'Resolved';
+        if (/open|assigned|active|in.progress|work.in/.test(l)) return 'Open';
+        if (/pending|waiting|deferred|blocked/.test(l)) return 'Pending';
+        if (/cancel/.test(l)) return 'Cancelled';
+        return s;
+    }
 
-// ============== NOTIFICATIONS ==============
-function notify(msg, type) {
-  const el = document.getElementById('notification');
-  el.textContent = msg;
-  el.className = 'notification ' + type;
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 4000);
-}
+    // ═══ QUICK CHECK ═══
+    async function runQuickCheck() {
+        var raw = document.getElementById('ttInput').value.trim();
+        if (!raw) return toast('⚠️ Paste ticket IDs first');
+        var ids = raw.split(/[\n,\s\t]+/).filter(function(x) { return x.length > 2; });
+        if (!ids.length) return toast('⚠️ No valid IDs');
 
-// ============== AUTO-LOAD ON PAGE OPEN ==============
-window.addEventListener('DOMContentLoaded', () => {
-  // Try to load from saved URL
-  const savedUrl = localStorage.getItem('csvUrl');
-  if (savedUrl) {
-    document.getElementById('csvUrl').value = savedUrl;
-  }
-});
+        document.getElementById('checkProgress').style.display = 'block';
+        document.getElementById('quickResultsCard').style.display = 'block';
 
-// Save URL when loading
-const origLoad = loadFromGitHub;
-loadFromGitHub = function() {
-  const url = document.getElementById('csvUrl').value.trim();
-  if (url) localStorage.setItem('csvUrl', url);
-  origLoad();
-};
+        var tbody = document.getElementById('quickResultsBody');
+        tbody.innerHTML = ids.map(function(id, i) {
+            return '<tr id="qr-' + id + '"><td>' + (i + 1) + '</td><td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" class="link-tt">' + id + '</a></td><td><span class="badge badge-checking">⏳ Checking…</span></td><td>—</td><td>—</td></tr>';
+        }).join('');
+
+        var done = 0;
+        var total = ids.length;
+
+        for (var i = 0; i < total; i += CONFIG.BATCH) {
+            var batch = ids.slice(i, i + CONFIG.BATCH);
+            await Promise.all(batch.map(async function(id) {
+                var res = await fetchStatus(id);
+                done++;
+                document.getElementById('progressFill').style.width = Math.round(done / total * 100) + '%';
+                document.getElementById('progressText').textContent = done + ' / ' + total;
+                updateRow(id, res, ids.indexOf(id) + 1);
+            }));
+            if (i + CONFIG.BATCH < total) await sleep(CONFIG.DELAY);
+        }
+
+        document.getElementById('resultCount').textContent = '(' + total + ' tickets)';
+        toast('✅ Checked ' + total + ' tickets');
+        renderAll();
+    }
+
+    function updateRow(id, res, idx) {
+        var row = document.getElementById('qr-' + id);
+        if (!row) return;
+        var time = res.ts ? new Date(res.ts).toLocaleTimeString() : '—';
+        row.innerHTML = '<td>' + idx + '</td><td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" class="link-tt">' + id + '</a></td><td><span class="badge ' + bclass(res.status) + '">' + bicon(res.status) + ' ' + res.status + '</span></td><td>' + time + '</td><td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" style="color:var(--accent);font-size:.8rem">Open ↗</a></td>';
+    }
+
+    async function checkAllTickets() {
+        if (!auditData.length) return toast('⚠️ No audit data — paste IDs manually');
+        document.getElementById('ttInput').value = auditData.map(function(r) { return r.ticketId; }).join('\n');
+        await runQuickCheck();
+    }
+
+    function loadSheetIDs() {
+        if (!auditData.length) return toast('⚠️ No audit data loaded');
+        document.getElementById('ttInput').value = auditData.map(function(r) { return r.ticketId; }).join('\n');
+        toast('📥 Loaded ' + auditData.length + ' IDs from sheet');
+    }
+
+    function clearChecker() {
+        document.getElementById('ttInput').value = '';
+        document.getElementById('quickResultsCard').style.display = 'none';
+        document.getElementById('checkProgress').style.display = 'none';
+    }
+
+    function filterResults() {
+        var s = document.getElementById('resultSearch').value.toLowerCase();
+        var f = document.getElementById('resultFilter').value;
+        document.querySelectorAll('#quickResultsBody tr').forEach(function(row) {
+            var id = (row.cells[1] ? row.cells[1].textContent : '').toLowerCase();
+            var st = (row.cells[2] ? row.cells[2].textContent : '').toLowerCase();
+            var ms = !s || id.includes(s);
+            var mf = f === 'all' || (f === 'resolved' && /resolved|closed/.test(st)) || (f === 'open' && /open|assigned/.test(st)) || (f === 'pending' && /pending/.test(st));
+            row.style.display = (ms && mf) ? '' : 'none';
+        });
+    }
+
+    // ═══ RENDER ALL ═══
+    function renderAll() {
+        renderKPIs();
+        renderCharts();
+        renderAuditorGrid();
+        renderTicketTable();
+        renderProcessTable();
+        updateTime();
+    }
+
+    // ═══ KPIs ═══
+    function renderKPIs() {
+        var total = auditData.length;
+        var res = 0, opn = 0, pen = 0, checked = 0;
+        auditData.forEach(function(r) {
+            var c = statusCache[r.ticketId];
+            if (!c) return;
+            checked++;
+            var s = c.status.toLowerCase();
+            if (/resolved|closed/.test(s)) res++;
+            else if (/open|assigned/.test(s)) opn++;
+            else if (/pending/.test(s)) pen++;
+        });
+        var auditors = new Set(auditData.map(function(r) { return r.auditor; })).size;
+        document.getElementById('kTotal').textContent = total;
+        document.getElementById('kResolved').textContent = res;
+        document.getElementById('kOpen').textContent = opn;
+        document.getElementById('kPending').textContent = pen;
+        document.getElementById('kAuditors').textContent = auditors;
+        document.getElementById('kRate').textContent = checked > 0 ? Math.round(res / checked * 100) + '%' : '—';
+    }
+
+    // ═══ CHARTS ═══
+    function renderCharts() {
+        var r = 0, o = 0, p = 0, u = 0;
+        auditData.forEach(function(item) {
+            var c = statusCache[item.ticketId];
+            if (!c) { u++; return; }
+            var s = c.status.toLowerCase();
+            if (/resolved|closed/.test(s)) r++;
+            else if (/open|assigned/.test(s)) o++;
+            else if (/pending/.test(s)) p++;
+            else u++;
+        });
+        if (chartInstances.s) chartInstances.s.destroy();
+        chartInstances.s = new Chart(document.getElementById('chartStatus'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Resolved', 'Open', 'Pending', 'Unchecked'],
+                datasets: [{ data: [r, o, p, u], backgroundColor: ['#00e68a', '#fbbf24', '#a78bfa', '#4b5563'], borderWidth: 0 }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
+        });
+
+        var pm = {};
+        auditData.forEach(function(r) { if (r.process) pm[r.process] = (pm[r.process] || 0) + 1; });
+        if (chartInstances.p) chartInstances.p.destroy();
+        chartInstances.p = new Chart(document.getElementById('chartProcess'), {
+            type: 'bar',
+            data: { labels: Object.keys(pm), datasets: [{ data: Object.values(pm), backgroundColor: '#00d4ff' }] },
+            options: {
+                responsive: true, indexAxis: 'y',
+                scales: { x: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } }, y: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { display: false } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        var am = {};
+        auditData.forEach(function(r) {
+            if (!am[r.auditor]) am[r.auditor] = { t: 0, r: 0 };
+            am[r.auditor].t++;
+            var c = statusCache[r.ticketId];
+            if (c && /resolved|closed/.test(c.status.toLowerCase())) am[r.auditor].r++;
+        });
+        var sorted = Object.entries(am).sort(function(a, b) { return b[1].t - a[1].t; }).slice(0, 12);
+        if (chartInstances.a) chartInstances.a.destroy();
+        chartInstances.a = new Chart(document.getElementById('chartAuditor'), {
+            type: 'bar',
+            data: {
+                labels: sorted.map(function(e) { return e[0]; }),
+                datasets: [
+                    { label: 'Total', data: sorted.map(function(e) { return e[1].t; }), backgroundColor: 'rgba(0,212,255,.4)' },
+                    { label: 'Resolved', data: sorted.map(function(e) { return e[1].r; }), backgroundColor: '#00e68a' }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { x: { ticks: { color: '#8892b0', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } } },
+                plugins: { legend: { labels: { color: '#8892b0' } } }
+            }
+        });
+
+        var bm = {};
+        auditData.forEach(function(r) { if (r.bucket) bm[r.bucket] = (bm[r.bucket] || 0) + 1; });
+        if (chartInstances.b) chartInstances.b.destroy();
+        chartInstances.b = new Chart(document.getElementById('chartBucket'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(bm),
+                datasets: [{ data: Object.values(bm), backgroundColor: ['#00d4ff', '#a78bfa', '#fb923c', '#00e68a', '#ff5757'], borderWidth: 0 }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
+        });
+    }
+
+    // ═══ PROCESS TABLE ═══
+    function renderProcessTable() {
+        var m = {};
+        auditData.forEach(function(r) {
+            if (!r.process) return;
+            if (!m[r.process]) m[r.process] = { t: 0, r: 0, o: 0, p: 0 };
+            m[r.process].t++;
+            var c = statusCache[r.ticketId];
+            if (!c) return;
+            var s = c.status.toLowerCase();
+            if (/resolved|closed/.test(s)) m[r.process].r++;
+            else if (/open|assigned/.test(s)) m[r.process].o++;
+            else if (/pending/.test(s)) m[r.process].p++;
+        });
+        document.getElementById('processTableBody').innerHTML = Object.entries(m)
+            .sort(function(a, b) { return b[1].t - a[1].t; })
+            .map(function(e) {
+                var rate = e[1].t > 0 ? Math.round(e[1].r / e[1].t * 100) : 0;
+                return '<tr><td>' + e[0] + '</td><td>' + e[1].t + '</td><td style="color:var(--green)">' + e[1].r + '</td><td style="color:var(--yellow)">' + e[1].o + '</td><td style="color:var(--purple)">' + e[1].p + '</td><td>' + rate + '%</td></tr>';
+            }).join('');
+    }
+
+    // ═══ AUDITOR GRID ═══
+    function renderAuditorGrid() {
+        var pf = (document.getElementById('auditorProcessFilter') || {}).value || 'all';
+        var data = pf === 'all' ? auditData : auditData.filter(function(r) { return r.process === pf; });
+        var m = {};
+        data.forEach(function(r) {
+            if (!m[r.auditor]) m[r.auditor] = { procs: new Set(), t: 0, r: 0 };
+            m[r.auditor].procs.add(r.process);
+            m[r.auditor].t++;
+            var c = statusCache[r.ticketId];
+            if (c && /resolved|closed/.test(c.status.toLowerCase())) m[r.auditor].r++;
+        });
+        document.getElementById('auditorGrid').innerHTML = Object.entries(m)
+            .sort(function(a, b) { return b[1].t - a[1].t; })
+            .map(function(e) {
+                var n = e[0], d = e[1];
+                var rate = d.t > 0 ? Math.round(d.r / d.t * 100) : 0;
+                return '<div class="auditor-card">' +
+                    '<div class="auditor-name">👤 ' + n + '</div>' +
+                    '<div class="auditor-process">' + Array.from(d.procs).join(', ') + '</div>' +
+                    '<div class="auditor-metrics">' +
+                        '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--accent)">' + d.t + '</div><div class="auditor-metric-lbl">Total</div></div>' +
+                        '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--green)">' + d.r + '</div><div class="auditor-metric-lbl">Resolved</div></div>' +
+                        '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--yellow)">' + (d.t - d.r) + '</div><div class="auditor-metric-lbl">Open</div></div>' +
+                    '</div>' +
+                    '<div class="auditor-bar"><div class="auditor-bar-track"><div class="auditor-bar-fill" style="width:' + rate + '%"></div></div><div class="auditor-bar-label">' + rate + '% resolved</div></div>' +
+                '</div>';
+            }).join('');
+    }
+
+    // ═══ ALL TICKETS TABLE ═══
+    function renderTicketTable() {
+        var search = (document.getElementById('ticketSearch') || { value: '' }).value.toLowerCase();
+        var pf = (document.getElementById('ticketProcessFilter') || { value: 'all' }).value;
+        var af = (document.getElementById('ticketAuditorFilter') || { value: 'all' }).value;
+        var sf = (document.getElementById('ticketStatusFilter') || { value: 'all' }).value;
+
+        var filtered = auditData.slice();
+        if (pf !== 'all') filtered = filtered.filter(function(r) { return r.process === pf; });
+        if (af !== 'all') filtered = filtered.filter(function(r) { return r.auditor === af; });
+        if (search) filtered = filtered.filter(function(r) {
+            return r.ticketId.toLowerCase().includes(search) || r.auditor.toLowerCase().includes(search);
+        });
+        if (sf !== 'all') {
+            filtered = filtered.filter(function(r) {
+                var c = statusCache[r.ticketId];
+                if (!c) return sf === 'unchecked';
+                var s = c.status.toLowerCase();
+                if (sf === 'resolved') return /resolved|closed/.test(s);
+                if (sf === 'open') return /open|assigned/.test(s);
+                if (sf === 'pending') return /pending/.test(s);
+                return false;
+            });
+        }
+
+        var tbody = document.getElementById('ticketTableBody');
+        tbody.innerHTML = filtered.slice(0, 500).map(function(r, i) {
+            var c = statusCache[r.ticketId];
+            var st = c ? c.status : 'Not Checked';
+            var ts = c && c.ts ? new Date(c.ts).toLocaleTimeString() : '—';
+            return '<tr><td>' + (i + 1) + '</td>' +
+                '<td><a href="' + CONFIG.TICKET_BASE + r.ticketId + '" target="_blank" class="link-tt">' + r.ticketId + '</a></td>' +
+                '<td>' + r.auditor + '</td>' +
+                '<td>' + r.process + '</td>' +
+                '<td>' + r.bucket + '</td>' +
+                '<td><span class="badge ' + bclass(st) + '">' + bicon(st) + ' ' + st + '</span></td>' +
+                '<td>' + ts + '</td></tr>';
+        }).join('');
+
+        if (filtered.length > 500) {
+            tbody.innerHTML += '<tr><td colspan="7" style="text-align:center;color:var(--dim)">Showing 500 of ' + filtered.length + ' — use filters to narrow</td></tr>';
+        }
+    }
+
+    // ═══ POPULATE FILTERS ═══
+    function populateFilters() {
+        var procs = [];
+        var auds = [];
+        auditData.forEach(function(r) {
+            if (r.process && procs.indexOf(r.process) === -1) procs.push(r.process);
+            if (r.auditor && auds.indexOf(r.auditor) === -1) auds.push(r.auditor);
+        });
+        procs.sort();
+        auds.sort();
+
+        var procHTML = '<option value="all">All Processes</option>' + procs.map(function(p) { return '<option value="' + p + '">' + p + '</option>'; }).join('');
+        var audHTML = '<option value="all">All Auditors</option>' + auds.map(function(a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
+
+        ['ticketProcessFilter', 'auditorProcessFilter'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.innerHTML = procHTML;
+        });
+        var afEl = document.getElementById('ticketAuditorFilter');
+        if (afEl) afEl.innerHTML = audHTML;
+    }
+
+    // ═══ HELPERS ═══
+    function bclass(s) {
+        s = (s || '').toLowerCase();
+        if (/resolved|closed/.test(s)) return 'badge-resolved';
+        if (/open|assigned/.test(s)) return 'badge-open';
+        if (/pending/.test(s)) return 'badge-pending';
+        if (/error|auth|fetch/.test(s)) return 'badge-error';
+        return 'badge-unknown';
+    }
+
+    function bicon(s) {
+        s = (s || '').toLowerCase();
+        if (/resolved|closed/.test(s)) return '✅';
+        if (/open|assigned/.test(s)) return '🟡';
+        if (/pending/.test(s)) return '🟣';
+        if (/error|auth|fetch/.test(s)) return '🔴';
+        return '⚪';
+    }
+
+    function toast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(function() { t.classList.remove('show'); }, 4000);
+    }
+
+    function updateTime() {
+        document.getElementById('refreshTime').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+    }
+
+    function sleep(ms) {
+        return new Promise(function(resolve) { setTimeout(resolve, ms); });
+    }
+
+    // ═══ CACHE (localStorage) ═══
+    function saveToCache(id, data) {
+        statusCache[id] = data;
+        try { localStorage.setItem('tp_cache', JSON.stringify(statusCache)); } catch (e) {}
+        return data;
+    }
+
+    function getFromCache(id) {
+        var c = statusCache[id];
+        if (!c) return null;
+        if ((Date.now() - c.ts) > CONFIG.CACHE_MIN * 60000) {
+            delete statusCache[id];
+            return null;
+        }
+        return c;
+    }
+
+    function loadCache() {
+        try {
+            var raw = localStorage.getItem('tp_cache');
+            if (raw) statusCache = JSON.parse(raw);
+            var cutoff = Date.now() - CONFIG.CACHE_MIN * 60000;
+            Object.keys(statusCache).forEach(function(k) {
+                if (statusCache[k].ts < cutoff) delete statusCache[k];
+            });
+        } catch (e) { statusCache = {}; }
+    }
+
+    // ═══ EXPORT CSV ═══
+    function exportCSV() {
+        if (!auditData.length) return toast('⚠️ No data');
+        var lines = ['Ticket ID,Auditor,Process,Bucket,Status,Checked At'];
+        auditData.forEach(function(r) {
+            var c = statusCache[r.ticketId] || { status: 'Not Checked', ts: '' };
+            var ts = c.ts ? new Date(c.ts).toISOString() : '';
+            lines.push(r.ticketId + ',' + r.auditor + ',"' + r.process + '",' + r.bucket + ',' + c.status + ',' + ts);
+        });
+        var csv = lines.join('\n');
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ticket_pulse_export_' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast('📥 CSV exported!');
+    }
+
+    // ═══ EXPOSE FUNCTIONS TO GLOBAL SCOPE ═══
+    window.runQuickCheck = runQuickCheck;
+    window.checkAllTickets = checkAllTickets;
+    window.loadSheetIDs = loadSheetIDs;
+    window.clearChecker = clearChecker;
+    window.filterResults = filterResults;
+    window.renderAuditorGrid = renderAuditorGrid;
+    window.renderTicketTable = renderTicketTable;
+    window.exportCSV = exportCSV;
+
+})();
 </script>
+</body>
+</html>
 
-</body
