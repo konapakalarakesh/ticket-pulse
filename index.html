@@ -2,790 +2,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Pulse · Audit TT Control Tower</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        :root {
-            --bg: #0a0a1a;
-            --bg2: #111128;
-            --card: #161640;
-            --hover: #1c1c50;
-            --accent: #00d4ff;
-            --glow: rgba(0,212,255,.15);
-            --green: #00e68a;
-            --yellow: #fbbf24;
-            --red: #ff5757;
-            --purple: #a78bfa;
-            --orange: #fb923c;
-            --text: #f0f0f0;
-            --dim: #8892b0;
-            --border: rgba(100,120,200,.15);
-            --rad: 14px;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.5; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Pulse — Audit TT Control Tower</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --card: #111827;
+  --border: #1f2937;
+  --text: #e5e7eb;
+  --muted: #6b7280;
+  --accent: #38bdf8;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --orange: #f97316;
+  --red: #ef4444;
+  --purple: #a78bfa;
+  --radius: 10px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* HEADER */
-        .header { position:sticky; top:0; z-index:100; background:rgba(10,10,26,.88); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; }
-        .brand { display:flex; align-items:center; gap:12px; }
-        .brand-icon { width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,var(--accent),#7c3aed); display:grid; place-items:center; font-size:18px; }
-        .brand h1 { font-size:1.25rem; font-weight:700; background:linear-gradient(90deg,var(--accent),#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-        .brand small { display:block; font-size:.7rem; color:var(--dim); letter-spacing:.5px; }
-        .header-right { display:flex; align-items:center; gap:14px; }
-        .live-badge { display:flex; align-items:center; gap:6px; font-size:.75rem; color:var(--green); }
-        .live-badge::before { content:''; width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; }
-        @keyframes pulse { 50%{opacity:.4;transform:scale(1.4)} }
-        #refreshTime { font-size:.72rem; color:var(--dim); }
+/* Header */
+.header { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 28px; }
+.brand h1 { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.brand p { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.live-badge { display: flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: var(--green); font-weight: 600; }
+.live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.last-update { font-size: 11px; color: var(--muted); }
+.btn { padding: 7px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary { background: #3b82f6; color: white; }
+.btn-primary:hover { background: #2563eb; }
+.btn-success { background: var(--green); color: white; }
+.btn-success:hover { background: #059669; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--card); color: var(--text); }
+.btn-sm { padding: 4px 9px; font-size: 10px; }
 
-        /* BUTTONS */
-        .btn { padding:9px 18px; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; transition:all .2s; }
-        .btn-accent { background:linear-gradient(135deg,var(--accent),#7c3aed); color:#fff; }
-        .btn-accent:hover { box-shadow:0 4px 20px var(--glow); transform:translateY(-1px); }
-        .btn-ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
-        .btn-ghost:hover { border-color:var(--accent); color:var(--text); }
+/* Container */
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        /* MAIN */
-        .main { max-width:1520px; margin:0 auto; padding:28px 32px; }
+/* Summary Cards */
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+.stat-card .label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.stat-card .value { font-size: 24px; font-weight: 700; font-family: 'Courier New', monospace; }
+.stat-card.c-total .value { color: var(--accent); }
+.stat-card.c-resolved .value { color: var(--green); }
+.stat-card.c-open .value { color: var(--yellow); }
+.stat-card.c-pending .value { color: var(--orange); }
+.stat-card.c-auditors .value { color: var(--purple); }
+.stat-card.c-rate .value { color: var(--green); }
 
-        /* KPI */
-        .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin-bottom:28px; }
-        .kpi { background:var(--card); border:1px solid var(--border); border-radius:var(--rad); padding:20px; position:relative; overflow:hidden; }
-        .kpi::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-        .kpi:nth-child(1)::after{background:var(--accent)} .kpi:nth-child(2)::after{background:var(--green)} .kpi:nth-child(3)::after{background:var(--yellow)} .kpi:nth-child(4)::after{background:var(--purple)} .kpi:nth-child(5)::after{background:var(--orange)} .kpi:nth-child(6)::after{background:var(--red)}
-        .kpi-label { font-size:.72rem; color:var(--dim); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
-        .kpi-value { font-size:1.7rem; font-weight:700; }
-        .kpi:nth-child(1) .kpi-value{color:var(--accent)} .kpi:nth-child(2) .kpi-value{color:var(--green)} .kpi:nth-child(3) .kpi-value{color:var(--yellow)} .kpi:nth-child(4) .kpi-value{color:var(--purple)} .kpi:nth-child(5) .kpi-value{color:var(--orange)} .kpi:nth-child(6) .kpi-value{color:var(--red)}
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--card); border-radius: 8px; padding: 4px; border: 1px solid var(--border); width: fit-content; }
+.tab { padding: 7px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; color: var(--muted); border: none; background: none; transition: all 0.15s; }
+.tab.active { background: #3b82f6; color: white; }
+.tab:hover:not(.active) { color: var(--text); }
 
-        /* TABS */
-        .tabs { display:flex; gap:2px; background:var(--bg2); border-radius:10px; padding:4px; margin-bottom:24px; overflow-x:auto; }
-        .tab { padding:10px 18px; border-radius:8px; font-size:.85rem; font-weight:500; color:var(--dim); cursor:pointer; white-space:nowrap; transition:all .2s; }
-        .tab.active { background:var(--card); color:var(--accent); }
-        .tab:hover:not(.active) { color:var(--text); }
-        .panel { display:none; }
-        .panel.active { display:block; }
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
 
-        /* CARD */
-        .card { background:var(--card); border:1px solid var(--border); border-radius:var(--rad); padding:24px; margin-bottom:24px; }
-        .card-title { font-size:1.05rem; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+/* Charts */
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.chart-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.chart-box h3 { font-size: 12px; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+.bar-row { margin-bottom: 7px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.bar-label .count { color: var(--text); font-weight: 600; font-family: monospace; }
+.bar-track { height: 6px; background: #1f2937; border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
 
-        /* CHECKER */
-        .checker-area { display:flex; gap:12px; flex-wrap:wrap; }
-        .checker-area textarea { flex:1; min-width:260px; min-height:100px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px; resize:vertical; color:var(--text); font-family:'Courier New',monospace; font-size:.85rem; }
-        .checker-area textarea:focus { outline:none; border-color:var(--accent); }
-        .checker-btns { display:flex; flex-direction:column; gap:8px; }
+/* Process Table */
+.process-table { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+.process-table-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.process-table-header h3 { font-size: 13px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; }
+td { padding: 8px 12px; color: var(--text); border-bottom: 1px solid #1a1f2e; }
+tr:hover td { background: rgba(56,189,248,0.03); }
 
-        /* PROGRESS */
-        .progress-wrap { margin:14px 0; }
-        .progress-bar { height:6px; background:var(--bg2); border-radius:3px; overflow:hidden; }
-        .progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--green)); transition:width .4s; }
-        .progress-text { font-size:.72rem; color:var(--dim); margin-top:4px; }
+/* Auditor Cards */
+.auditor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+.auditor-header h2 { font-size: 15px; font-weight: 600; }
+.auditor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.aud-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; transition: border-color 0.15s; }
+.aud-card:hover { border-color: var(--accent); }
+.aud-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.aud-name { font-size: 13px; font-weight: 600; color: var(--accent); }
+.aud-tasks { font-size: 9px; color: var(--muted); margin-top: 2px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aud-stats { display: flex; gap: 10px; font-size: 10px; color: var(--muted); flex-wrap: wrap; }
+.aud-stats .s-val { font-weight: 700; font-family: monospace; }
+.aud-stats .s-resolved .s-val { color: var(--green); }
+.aud-stats .s-open .s-val { color: var(--yellow); }
+.aud-stats .s-pending .s-val { color: var(--orange); }
+.aud-stats .s-total .s-val { color: var(--accent); }
+.aud-progress { height: 3px; background: #1f2937; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.aud-progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), #34d399); border-radius: 3px; }
+.aud-pct { font-size: 10px; color: var(--green); font-weight: 600; font-family: monospace; }
 
-        /* TABLE */
-        .table-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--border); }
-        table { width:100%; border-collapse:collapse; font-size:.84rem; }
-        th { background:var(--bg2); padding:12px 14px; text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); font-weight:600; position:sticky; top:0; z-index:2; }
-        td { padding:10px 14px; border-top:1px solid var(--border); }
-        tr:hover td { background:var(--hover); }
+/* Ticket Table */
+.ticket-section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.ticket-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+.ticket-header h2 { font-size: 14px; font-weight: 600; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filters select, .filters input { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 5px 9px; color: var(--text); font-size: 11px; outline: none; }
+.filters select:focus, .filters input:focus { border-color: var(--accent); }
 
-        /* BADGES */
-        .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:600; }
-        .badge-resolved { background:rgba(0,230,138,.12); color:var(--green); }
-        .badge-open { background:rgba(251,191,36,.12); color:var(--yellow); }
-        .badge-pending { background:rgba(167,139,250,.12); color:var(--purple); }
-        .badge-unknown { background:rgba(136,146,176,.12); color:var(--dim); }
-        .badge-checking { background:rgba(0,212,255,.08); color:var(--accent); }
-        .badge-error { background:rgba(255,87,87,.12); color:var(--red); }
-        .link-tt { color:var(--accent); text-decoration:none; font-family:monospace; }
-        .link-tt:hover { text-decoration:underline; }
+/* Badges */
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+.badge-closed { background: #064e3b; color: #6ee7b7; }
+.badge-assigned { background: #172554; color: #93c5fd; }
+.badge-pending { background: #7c2d12; color: #fdba74; }
+.badge-wip { background: #1e1b4b; color: #c4b5fd; }
+.badge-unknown { background: #1f2937; color: #6b7280; }
+.badge-failed { background: #450a0a; color: #fca5a5; }
 
-        /* CHARTS */
-        .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
-        .chart-box { background:var(--card); border:1px solid var(--border); border-radius:var(--rad); padding:20px; }
-        .chart-box h3 { font-size:.9rem; color:var(--dim); margin-bottom:12px; }
-        canvas { max-height:280px; }
+.tt-link { color: var(--accent); text-decoration: none; font-family: monospace; font-size: 11px; }
+.tt-link:hover { text-decoration: underline; }
 
-        /* AUDITOR GRID */
-        .auditor-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
-        .auditor-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:18px; transition:all .2s; }
-        .auditor-card:hover { border-color:var(--accent); transform:translateY(-2px); }
-        .auditor-name { font-weight:600; font-size:.95rem; }
-        .auditor-process { font-size:.75rem; color:var(--dim); margin-bottom:10px; }
-        .auditor-metrics { display:flex; gap:10px; }
-        .auditor-metric { flex:1; text-align:center; padding:8px 4px; background:var(--bg); border-radius:8px; }
-        .auditor-metric-val { font-size:1.1rem; font-weight:700; }
-        .auditor-metric-lbl { font-size:.65rem; color:var(--dim); text-transform:uppercase; }
-        .auditor-bar { margin-top:10px; }
-        .auditor-bar-track { height:5px; background:var(--bg); border-radius:3px; }
-        .auditor-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--green),var(--accent)); }
-        .auditor-bar-label { font-size:.7rem; color:var(--dim); text-align:right; margin-top:3px; }
+/* Empty/Loading */
+.empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
 
-        /* FILTER */
-        .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
-        .filter-bar select, .filter-bar input { padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:.82rem; }
-        .filter-bar select:focus, .filter-bar input:focus { outline:none; border-color:var(--accent); }
-
-        /* TOAST */
-        .toast { position:fixed; bottom:24px; right:24px; background:var(--card); border:1px solid var(--accent); border-radius:10px; padding:14px 22px; box-shadow:0 8px 32px rgba(0,212,255,.15); font-size:.88rem; z-index:2000; transform:translateY(80px); opacity:0; transition:all .35s ease; }
-        .toast.show { transform:translateY(0); opacity:1; }
-
-        /* RESPONSIVE */
-        @media(max-width:768px) { .header{padding:14px 16px} .main{padding:16px} .charts-grid{grid-template-columns:1fr} .kpi-row{grid-template-columns:repeat(2,1fr)} .checker-area{flex-direction:column} }
-        ::-webkit-scrollbar{width:6px;height:6px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-    </style>
+/* Notification */
+.toast { position: fixed; top: 16px; right: 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 12px; z-index: 999; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.4); max-width: 320px; }
+.toast.ok { border-color: var(--green); color: var(--green); }
+.toast.err { border-color: var(--red); color: #fca5a5; }
+</style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header">
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">⚡</div>
     <div class="brand">
-        <div class="brand-icon">⚡</div>
-        <div><h1>Ticket Pulse</h1><small>AUDIT TT CONTROL TOWER</small></div>
+      <h1>Ticket Pulse</h1>
+      <p>Audit TT Control Tower</p>
     </div>
-    <div class="header-right">
-        <div>
-            <div class="live-badge" id="connBadge">LIVE</div>
-            <div id="refreshTime">—</div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="last-update" id="lastUpdate">—</div>
+    <button class="btn btn-ghost" onclick="exportCSV()">📥 Export</button>
+    <button class="btn btn-primary" onclick="loadData()">🔄 Refresh</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Summary -->
+  <div class="summary-grid">
+    <div class="stat-card c-total"><div class="label">Total Tickets</div><div class="value" id="sTotal">—</div></div>
+    <div class="stat-card c-resolved"><div class="label">Resolved</div><div class="value" id="sResolved">—</div></div>
+    <div class="stat-card c-open"><div class="label">Open</div><div class="value" id="sOpen">—</div></div>
+    <div class="stat-card c-pending"><div class="label">Pending</div><div class="value" id="sPending">—</div></div>
+    <div class="stat-card c-auditors"><div class="label">Auditors</div><div class="value" id="sAuditors">—</div></div>
+    <div class="stat-card c-rate"><div class="label">Resolution %</div><div class="value" id="sRate">—</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analytics')">📊 Analytics</button>
+    <button class="tab" onclick="switchTab('auditors')">👥 Auditors</button>
+    <button class="tab" onclick="switchTab('tickets')">📋 All Tickets</button>
+  </div>
+
+  <!-- ANALYTICS TAB -->
+  <div class="section active" id="sec-analytics">
+    <div class="charts-grid" id="chartsGrid"></div>
+    <div class="process-table">
+      <div class="process-table-header"><h3>📋 Process Breakdown</h3></div>
+      <table><thead><tr><th>Process</th><th>Total</th><th>Resolved</th><th>Open</th><th>Pending</th><th>Rate</th><th>Action</th></tr></thead><tbody id="processBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- AUDITORS TAB -->
+  <div class="section" id="sec-auditors">
+    <div class="auditor-header">
+      <h2>👥 Auditor Performance</h2>
+      <div class="filters">
+        <select id="audProcessFilter" onchange="renderAuditors()"><option value="all">All Processes</option></select>
+      </div>
+    </div>
+    <div class="auditor-grid" id="auditorGrid"></div>
+  </div>
+
+  <!-- TICKETS TAB -->
+  <div class="section" id="sec-tickets">
+    <div class="ticket-section">
+      <div class="ticket-header">
+        <h2>📋 Full Ticket List (<span id="tktCount">0</span>)</h2>
+        <div class="filters">
+          <select id="fProcess" onchange="renderTickets()"><option value="all">All Processes</option></select>
+          <select id="fAuditor" onchange="renderTickets()"><option value="all">All Auditors</option></select>
+          <select id="fStatus" onchange="renderTickets()">
+            <option value="all">All</option>
+            <option value="Closed">Resolved</option>
+            <option value="open">Open</option>
+            <option value="Pending">Pending</option>
+          </select>
+          <select id="fBucket" onchange="renderTickets()"><option value="all">All Buckets</option></select>
+          <input type="text" id="fSearch" placeholder="Search ID..." oninput="renderTickets()" style="width:130px;" />
         </div>
-        <button class="btn btn-ghost" onclick="exportCSV()">📥 Export</button>
-        <button class="btn btn-accent" onclick="checkAllTickets()">🚀 Check All</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table><thead><tr><th>#</th><th>Ticket</th><th>Auditor</th><th>Process</th><th>Bucket</th><th>Status</th><th>Severity</th><th>Root Cause</th></tr></thead><tbody id="ticketBody"></tbody></table>
+      </div>
     </div>
-</header>
+  </div>
 
-<!-- MAIN -->
-<main class="main">
+</div>
 
-    <!-- KPI ROW -->
-    <div class="kpi-row">
-        <div class="kpi"><div class="kpi-label">Total Tickets</div><div class="kpi-value" id="kTotal">—</div></div>
-        <div class="kpi"><div class="kpi-label">Resolved</div><div class="kpi-value" id="kResolved">—</div></div>
-        <div class="kpi"><div class="kpi-label">Open</div><div class="kpi-value" id="kOpen">—</div></div>
-        <div class="kpi"><div class="kpi-label">Pending</div><div class="kpi-value" id="kPending">—</div></div>
-        <div class="kpi"><div class="kpi-label">Auditors</div><div class="kpi-value" id="kAuditors">—</div></div>
-        <div class="kpi"><div class="kpi-label">Resolution %</div><div class="kpi-value" id="kRate">—</div></div>
-    </div>
-
-    <!-- TABS -->
-    <div class="tabs">
-        <div class="tab active" data-tab="checker">🔍 Quick Check</div>
-        <div class="tab" data-tab="analytics">📊 Analytics</div>
-        <div class="tab" data-tab="auditors">👥 Auditors</div>
-        <div class="tab" data-tab="tickets">📋 All Tickets</div>
-    </div>
-
-    <!-- PANEL: QUICK CHECK -->
-    <div class="panel active" id="panel-checker">
-        <div class="card">
-            <div class="card-title"><span>⚡</span> Quick Ticket Status Check</div>
-            <p style="color:var(--dim);font-size:.88rem;margin-bottom:14px">Paste TT IDs below (one per line or comma-separated). Fetches live status from t.corp via your authenticated Midway session.</p>
-            <div class="checker-area">
-                <textarea id="ttInput" placeholder="D209619666&#10;D492282767&#10;P473222076&#10;&#10;Or comma-separated: D209619666, D492282767"></textarea>
-                <div class="checker-btns">
-                    <button class="btn btn-accent" onclick="runQuickCheck()">⚡ Check Status</button>
-                    <button class="btn btn-ghost" onclick="loadSheetIDs()">📥 Load from Sheet</button>
-                    <button class="btn btn-ghost" onclick="clearChecker()">🗑️ Clear</button>
-                </div>
-            </div>
-            <div class="progress-wrap" id="checkProgress" style="display:none">
-                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-                <div class="progress-text" id="progressText">0 / 0</div>
-            </div>
-        </div>
-        <div class="card" id="quickResultsCard" style="display:none">
-            <div class="card-title"><span>📋</span> Results <span id="resultCount" style="font-size:.8rem;color:var(--dim);font-weight:400"></span></div>
-            <div class="filter-bar">
-                <input type="text" id="resultSearch" placeholder="Search ID..." oninput="filterResults()">
-                <select id="resultFilter" onchange="filterResults()">
-                    <option value="all">All</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="open">Open</option>
-                    <option value="pending">Pending</option>
-                </select>
-            </div>
-            <div class="table-wrap" style="max-height:500px;overflow-y:auto">
-                <table>
-                    <thead><tr><th>#</th><th>Ticket ID</th><th>Status</th><th>Time</th><th>Link</th></tr></thead>
-                    <tbody id="quickResultsBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- PANEL: ANALYTICS -->
-    <div class="panel" id="panel-analytics">
-        <div class="charts-grid">
-            <div class="chart-box"><h3>📊 Status Distribution</h3><canvas id="chartStatus"></canvas></div>
-            <div class="chart-box"><h3>📈 Tickets by Process</h3><canvas id="chartProcess"></canvas></div>
-            <div class="chart-box"><h3>🎯 Top Auditors</h3><canvas id="chartAuditor"></canvas></div>
-            <div class="chart-box"><h3>📦 Bucket Distribution</h3><canvas id="chartBucket"></canvas></div>
-        </div>
-        <div class="card">
-            <div class="card-title"><span>📋</span> Process Breakdown</div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Process</th><th>Total</th><th>Resolved</th><th>Open</th><th>Pending</th><th>Rate</th></tr></thead>
-                    <tbody id="processTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- PANEL: AUDITORS -->
-    <div class="panel" id="panel-auditors">
-        <div class="card">
-            <div class="card-title"><span>👥</span> Auditor Performance</div>
-            <div class="filter-bar">
-                <select id="auditorProcessFilter" onchange="renderAuditorGrid()"><option value="all">All Processes</option></select>
-            </div>
-            <div class="auditor-grid" id="auditorGrid"></div>
-        </div>
-    </div>
-
-    <!-- PANEL: ALL TICKETS -->
-    <div class="panel" id="panel-tickets">
-        <div class="card">
-            <div class="card-title"><span>📋</span> Full Ticket List</div>
-            <div class="filter-bar">
-                <input type="text" id="ticketSearch" placeholder="Search..." oninput="renderTicketTable()">
-                <select id="ticketProcessFilter" onchange="renderTicketTable()"><option value="all">All Processes</option></select>
-                <select id="ticketAuditorFilter" onchange="renderTicketTable()"><option value="all">All Auditors</option></select>
-                <select id="ticketStatusFilter" onchange="renderTicketTable()">
-                    <option value="all">All</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="open">Open</option>
-                    <option value="pending">Pending</option>
-                    <option value="unchecked">Not Checked</option>
-                </select>
-            </div>
-            <div class="table-wrap" style="max-height:600px;overflow-y:auto">
-                <table>
-                    <thead><tr><th>#</th><th>Ticket</th><th>Auditor</th><th>Process</th><th>Bucket</th><th>Status</th><th>Time</th></tr></thead>
-                    <tbody id="ticketTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</main>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-(function() {
-    'use strict';
+let DATA = null;
 
-    // ═══ CONFIG ═══
-    var CONFIG = {
-        TICKET_BASE: 'https://t.corp.amazon.com/',
-        AUDIT_FILE: './Audits.xlsx',
-        CACHE_MIN: 60,
-        BATCH: 3,
-        DELAY: 1200
-    };
+async function loadData() {
+  try {
+    const r = await fetch('./data/tickets.json?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    DATA = await r.json();
+    document.getElementById('lastUpdate').textContent = DATA.last_updated;
+    populateFilters();
+    renderAll();
+    toast('Dashboard refreshed!', 'ok');
+  } catch(e) {
+    toast('Load failed: ' + e.message + ' — Is refresh.py running?', 'err');
+  }
+}
 
-    var auditData = [];
-    var statusCache = {};
-    var chartInstances = {};
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3500);
+}
 
-    // ═══ INIT — DIRECT BOOT, NO AUTH GATE ═══
-    document.addEventListener('DOMContentLoaded', function() {
-        loadCache();
-        setupTabs();
-        toast('⚡ Dashboard ready — authenticate via bat file first');
-        boot();
-    });
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
 
-    function boot() {
-        loadAuditSheet();
+function populateFilters() {
+  if (!DATA) return;
+  const procs = [...new Set(DATA.tickets.map(t=>t.task).filter(Boolean))].sort();
+  const auds = [...new Set(DATA.tickets.map(t=>t.auditor).filter(Boolean))].sort();
+  const bkts = [...new Set(DATA.tickets.map(t=>t.bucket).filter(Boolean))].sort();
+
+  const procOpts = '<option value="all">All Processes</option>' + procs.map(p=>'<option>'+p+'</option>').join('');
+  document.getElementById('fProcess').innerHTML = procOpts;
+  document.getElementById('audProcessFilter').innerHTML = procOpts;
+  document.getElementById('fAuditor').innerHTML = '<option value="all">All Auditors</option>' + auds.map(a=>'<option>'+a+'</option>').join('');
+  document.getElementById('fBucket').innerHTML = '<option value="all">All Buckets</option>' + bkts.map(b=>'<option>'+b+'</option>').join('');
+}
+
+function renderAll() {
+  renderSummary();
+  renderCharts();
+  renderProcessTable();
+  renderAuditors();
+  renderTickets();
+}
+
+function renderSummary() {
+  if (!DATA) return;
+  const s = DATA.summary;
+  document.getElementById('sTotal').textContent = s.total;
+  document.getElementById('sResolved').textContent = s.resolved;
+  document.getElementById('sOpen').textContent = s.open;
+  document.getElementById('sPending').textContent = s.pending;
+  document.getElementById('sAuditors').textContent = s.auditor_count;
+  document.getElementById('sRate').textContent = s.resolution_pct + '%';
+}
+
+function renderCharts() {
+  if (!DATA) return;
+  const grid = document.getElementById('chartsGrid');
+
+  // Status chart
+  const statusColors = {'Closed':'#10b981','Assigned':'#3b82f6','Pending':'#f97316','Work In Progress':'#a78bfa','Researching':'#38bdf8','Fetch Failed':'#ef4444','Unknown':'#4b5563','Timeout':'#dc2626','Parse Error':'#f43f5e'};
+  const statusMap = {};
+  DATA.tickets.forEach(t => { statusMap[t.status] = (statusMap[t.status]||0)+1; });
+  const maxS = Math.max(...Object.values(statusMap), 1);
+
+  let h = '<div class="chart-box"><h3>📊 Status Distribution</h3>';
+  Object.entries(statusMap).sort((a,b)=>b[1]-a[1]).forEach(([k,v]) => {
+    h += `<div class="bar-row"><div class="bar-label"><span>${k}</span><span class="count">${v}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(v/maxS)*100}%;background:${statusColors[k]||'#4b5563'}"></div></div></div>`;
+  });
+  h += '</div>';
+
+  // Process chart
+  const ts = DATA.task_stats;
+  const maxT = Math.max(...Object.values(ts).map(v=>v.total), 1);
+  h += '<div class="chart-box"><h3>📈 Tickets by Process</h3>';
+  Object.entries(ts).sort((a,b)=>b[1].total-a[1].total).forEach(([k,v]) => {
+    h += `<div class="bar-row"><div class="bar-label"><span>${k}</span><span class="count">${v.total}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(v.total/maxT)*100}%;background:var(--accent)"></div></div></div>`;
+  });
+  h += '</div>';
+
+  // Top Auditors
+  const as = DATA.auditor_stats;
+  const topAuds = Object.entries(as).sort((a,b)=>b[1].resolved-a[1].resolved).slice(0,8);
+  const maxA = Math.max(...topAuds.map(a=>a[1].total), 1);
+  h += '<div class="chart-box"><h3>🎯 Top Auditors (by resolved)</h3>';
+  topAuds.forEach(([name,d]) => {
+    h += `<div class="bar-row"><div class="bar-label"><span>${name}</span><span class="count">${d.resolved}/${d.total}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(d.resolved/maxA)*100}%;background:var(--green)"></div></div></div>`;
+  });
+  h += '</div>';
+
+  // Bucket chart
+  const bs = DATA.bucket_stats;
+  const maxB = Math.max(...Object.values(bs).map(v=>v.total), 1);
+  h += '<div class="chart-box"><h3>📦 Bucket Distribution</h3>';
+  Object.entries(bs).sort((a,b)=>b[1].total-a[1].total).forEach(([k,v]) => {
+    h += `<div class="bar-row"><div class="bar-label"><span>${k||'Unknown'}</span><span class="count">${v.total}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(v.total/maxB)*100}%;background:var(--purple)"></div></div></div>`;
+  });
+  h += '</div>';
+
+  grid.innerHTML = h;
+}
+
+function renderProcessTable() {
+  if (!DATA) return;
+  const body = document.getElementById('processBody');
+  const ts = DATA.task_stats;
+  let h = '';
+  Object.entries(ts).sort((a,b)=>b[1].total-a[1].total).forEach(([proc, d]) => {
+    const rate = d.total > 0 ? Math.round((d.resolved/d.total)*100) : 0;
+    h += `<tr>
+      <td style="font-weight:600;">${proc}</td>
+      <td style="font-family:monospace;">${d.total}</td>
+      <td style="color:var(--green);font-family:monospace;">${d.resolved}</td>
+      <td style="color:var(--yellow);font-family:monospace;">${d.open}</td>
+      <td style="color:var(--orange);font-family:monospace;">${d.pending}</td>
+      <td><span class="badge ${rate>=80?'badge-closed':rate>=50?'badge-assigned':'badge-failed'}">${rate}%</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="filterByProcess('${proc}')">View</button></td>
+    </tr>`;
+  });
+  body.innerHTML = h;
+}
+
+function renderAuditors() {
+  if (!DATA) return;
+  const grid = document.getElementById('auditorGrid');
+  const procFilter = document.getElementById('audProcessFilter').value;
+
+  // Filter tickets by process
+  let tickets = DATA.tickets;
+  if (procFilter !== 'all') tickets = tickets.filter(t => t.task === procFilter);
+
+  // Build auditor stats from filtered tickets
+  const map = {};
+  tickets.forEach(t => {
+    if (!t.auditor) return;
+    if (!map[t.auditor]) map[t.auditor] = {total:0,resolved:0,open:0,pending:0,tasks:new Set()};
+    map[t.auditor].total++;
+    map[t.auditor].tasks.add(t.task);
+    if (t.status==='Closed') map[t.auditor].resolved++;
+    else if (['Assigned','Work In Progress','Researching'].includes(t.status)) map[t.auditor].open++;
+    else if (t.status==='Pending') map[t.auditor].pending++;
+  });
+
+  let h = '';
+  Object.entries(map).sort((a,b)=>b[1].total-a[1].total).forEach(([name, d]) => {
+    const pct = d.total > 0 ? Math.round((d.resolved/d.total)*100) : 0;
+    const tasks = [...d.tasks].join(', ');
+    h += `<div class="aud-card">
+      <div class="aud-card-top">
+        <div><div class="aud-name">${name}</div><div class="aud-tasks" title="${tasks}">${tasks}</div></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="aud-pct">${pct}%</span>
+          <button class="btn btn-ghost btn-sm" onclick="filterByAuditor('${name}')">📋</button>
+        </div>
+      </div>
+      <div class="aud-stats">
+        <span class="s-total">Total: <span class="s-val">${d.total}</span></span>
+        <span class="s-resolved">Done: <span class="s-val">${d.resolved}</span></span>
+        <span class="s-open">Open: <span class="s-val">${d.open}</span></span>
+        <span class="s-pending">Pending: <span class="s-val">${d.pending}</span></span>
+      </div>
+      <div class="aud-progress"><div class="aud-progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  });
+  grid.innerHTML = h || '<div class="empty-state">No auditor data</div>';
+}
+
+function renderTickets() {
+  if (!DATA) return;
+  const proc = document.getElementById('fProcess').value;
+  const aud = document.getElementById('fAuditor').value;
+  const st = document.getElementById('fStatus').value;
+  const bkt = document.getElementById('fBucket').value;
+  const q = document.getElementById('fSearch').value.toLowerCase();
+
+  let tickets = DATA.tickets.filter(t => {
+    if (proc !== 'all' && t.task !== proc) return false;
+    if (aud !== 'all' && t.auditor !== aud) return false;
+    if (bkt !== 'all' && t.bucket !== bkt) return false;
+    if (st !== 'all') {
+      if (st === 'open' && !['Assigned','Work In Progress','Researching'].includes(t.status)) return false;
+      if (st !== 'open' && t.status !== st) return false;
     }
+    if (q && !t.ticket_id.toLowerCase().includes(q)) return false;
+    return true;
+  });
 
-    // ═══ TABS ═══
-    function setupTabs() {
-        document.querySelectorAll('.tab').forEach(function(t) {
-            t.addEventListener('click', function() {
-                document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
-                document.querySelectorAll('.panel').forEach(function(x) { x.classList.remove('active'); });
-                t.classList.add('active');
-                document.getElementById('panel-' + t.dataset.tab).classList.add('active');
-            });
-        });
-    }
+  document.getElementById('tktCount').textContent = tickets.length;
+  const body = document.getElementById('ticketBody');
 
-    // ═══ LOAD AUDIT EXCEL ═══
-    async function loadAuditSheet() {
-        try {
-            var r = await fetch(CONFIG.AUDIT_FILE, { cache: 'no-cache' });
-            if (!r.ok) throw new Error(r.status);
-            var buf = await r.arrayBuffer();
-            var wb = XLSX.read(buf, { type: 'array', cellDates: true });
-            var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-            auditData = rows.map(function(row) {
-                return {
-                    date: row['Date'] || '',
-                    process: row['Process'] || '',
-                    ticketId: (row['Ticket ID'] || row['TT ID'] || '').toString().trim(),
-                    auditor: row['Auditor'] || '',
-                    bucket: row['Bucket'] || ''
-                };
-            }).filter(function(x) { return x.ticketId.length > 0; });
-            toast('📊 Loaded ' + auditData.length + ' tickets from sheet');
-            populateFilters();
-            renderAll();
-        } catch (e) {
-            toast('ℹ️ No Audits.xlsx found — paste IDs manually in Quick Check');
-        }
-    }
+  let h = '';
+  tickets.slice(0, 300).forEach((t, i) => {
+    const bc = badgeClass(t.status);
+    h += `<tr>
+      <td style="color:var(--muted);">${i+1}</td>
+      <td><a class="tt-link" href="https://t.corp.amazon.com/${t.ticket_id}" target="_blank">${t.ticket_id}</a></td>
+      <td>${t.auditor||'-'}</td>
+      <td>${t.task||'-'}</td>
+      <td>${t.bucket||'-'}</td>
+      <td><span class="badge ${bc}">${t.status}</span></td>
+      <td>${t.severity||'-'}</td>
+      <td>${t.root_cause||'-'}</td>
+    </tr>`;
+  });
+  body.innerHTML = h || '<tr><td colspan="8" class="empty-state">No tickets found. Run refresh.py first.</td></tr>';
+}
 
-    // ═══ FETCH TICKET STATUS FROM t.corp ═══
-    async function fetchStatus(id) {
-        id = id.trim();
-        if (!id) return null;
-        var c = getFromCache(id);
-        if (c) return c;
+function badgeClass(s) {
+  if (s === 'Closed') return 'badge-closed';
+  if (s === 'Assigned') return 'badge-assigned';
+  if (s === 'Pending') return 'badge-pending';
+  if (['Work In Progress','Researching'].includes(s)) return 'badge-wip';
+  if (['Fetch Failed','Timeout','Parse Error'].includes(s)) return 'badge-failed';
+  return 'badge-unknown';
+}
 
-        try {
-            var r = await fetch(CONFIG.TICKET_BASE + id, {
-                credentials: 'include',
-                redirect: 'follow'
-            });
-            if (r.status === 401 || r.status === 403) {
-                return saveToCache(id, { status: 'Auth Required', ts: Date.now() });
-            }
-            if (!r.ok) {
-                return saveToCache(id, { status: 'Error ' + r.status, ts: Date.now() });
-            }
-            var html = await r.text();
-            return saveToCache(id, parseStatus(html));
-        } catch (e) {
-            return saveToCache(id, { status: 'Fetch Error', ts: Date.now() });
-        }
-    }
+function filterByProcess(proc) {
+  switchTab('tickets');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[2].classList.add('active');
+  document.getElementById('fProcess').value = proc;
+  renderTickets();
+}
 
-    function parseStatus(html) {
-        var res = { status: 'Unknown', ts: Date.now() };
-        var patterns = [
-            /"status"\s*:\s*"([^"]+)"/i,
-            /"state"\s*:\s*"([^"]+)"/i,
-            /Status<\/[^>]+>\s*<[^>]+>([^<]+)/i,
-            /<span[^>]*status[^>]*>([^<]+)/i,
-            /data-status=["']([^"']+)/i,
-            /"resolution"\s*:\s*"([^"]+)"/i,
-            /class="status[^"]*"[^>]*>([^<]+)/i,
-            /Status:\s*<[^>]+>([^<]+)/i
-        ];
-        for (var i = 0; i < patterns.length; i++) {
-            var m = html.match(patterns[i]);
-            if (m && m[1]) {
-                res.status = normalize(m[1].trim());
-                return res;
-            }
-        }
-        var kw = html.match(/\b(Resolved|Closed|Open|Assigned|Pending|Work In Progress|Cancelled|Deferred|Fixed|Done)\b/i);
-        if (kw) res.status = normalize(kw[1]);
-        return res;
-    }
+function filterByAuditor(aud) {
+  switchTab('tickets');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[2].classList.add('active');
+  document.getElementById('fAuditor').value = aud;
+  renderTickets();
+}
 
-    function normalize(s) {
-        var l = s.toLowerCase();
-        if (/resolved|closed|fixed|done|complete/.test(l)) return 'Resolved';
-        if (/open|assigned|active|in.progress|work.in/.test(l)) return 'Open';
-        if (/pending|waiting|deferred|blocked/.test(l)) return 'Pending';
-        if (/cancel/.test(l)) return 'Cancelled';
-        return s;
-    }
+function exportCSV() {
+  if (!DATA) return;
+  let csv = 'Ticket ID,Auditor,Process,Bucket,Status,Severity,Resolved By,Root Cause\n';
+  DATA.tickets.forEach(t => {
+    csv += [t.ticket_id,t.auditor,t.task,t.bucket,t.status,t.severity||'',t.resolved_by||'',t.root_cause||''].map(v=>'"'+(v||'')+'"').join(',') + '\n';
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'ticket_pulse_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
 
-    // ═══ QUICK CHECK ═══
-    async function runQuickCheck() {
-        var raw = document.getElementById('ttInput').value.trim();
-        if (!raw) return toast('⚠️ Paste ticket IDs first');
-        var ids = raw.split(/[\n,\s\t]+/).filter(function(x) { return x.length > 2; });
-        if (!ids.length) return toast('⚠️ No valid IDs');
+// Auto-refresh every 5 min
+setInterval(loadData, 300000);
 
-        document.getElementById('checkProgress').style.display = 'block';
-        document.getElementById('quickResultsCard').style.display = 'block';
-
-        var tbody = document.getElementById('quickResultsBody');
-        tbody.innerHTML = ids.map(function(id, i) {
-            return '<tr id="qr-' + id + '"><td>' + (i + 1) + '</td><td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" class="link-tt">' + id + '</a></td><td><span class="badge badge-checking">⏳ Checking…</span></td><td>—</td><td>—</td></tr>';
-        }).join('');
-
-        var done = 0;
-        var total = ids.length;
-
-        for (var i = 0; i < total; i += CONFIG.BATCH) {
-            var batch = ids.slice(i, i + CONFIG.BATCH);
-            await Promise.all(batch.map(async function(id) {
-                var res = await fetchStatus(id);
-                done++;
-                document.getElementById('progressFill').style.width = Math.round(done / total * 100) + '%';
-                document.getElementById('progressText').textContent = done + ' / ' + total;
-                updateRow(id, res, ids.indexOf(id) + 1);
-            }));
-            if (i + CONFIG.BATCH < total) await sleep(CONFIG.DELAY);
-        }
-
-        document.getElementById('resultCount').textContent = '(' + total + ' tickets)';
-        toast('✅ Checked ' + total + ' tickets');
-        renderAll();
-    }
-
-    function updateRow(id, res, idx) {
-        var row = document.getElementById('qr-' + id);
-        if (!row) return;
-        var time = res.ts ? new Date(res.ts).toLocaleTimeString() : '—';
-        row.innerHTML = '<td>' + idx + '</td><td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" class="link-tt">' + id + '</a></td><td><span class="badge ' + bclass(res.status) + '">' + bicon(res.status) + ' ' + res.status + '</span></td><td>' + time + '</td><td><a href="' + CONFIG.TICKET_BASE + id + '" target="_blank" style="color:var(--accent);font-size:.8rem">Open ↗</a></td>';
-    }
-
-    async function checkAllTickets() {
-        if (!auditData.length) return toast('⚠️ No audit data — paste IDs manually');
-        document.getElementById('ttInput').value = auditData.map(function(r) { return r.ticketId; }).join('\n');
-        await runQuickCheck();
-    }
-
-    function loadSheetIDs() {
-        if (!auditData.length) return toast('⚠️ No audit data loaded');
-        document.getElementById('ttInput').value = auditData.map(function(r) { return r.ticketId; }).join('\n');
-        toast('📥 Loaded ' + auditData.length + ' IDs from sheet');
-    }
-
-    function clearChecker() {
-        document.getElementById('ttInput').value = '';
-        document.getElementById('quickResultsCard').style.display = 'none';
-        document.getElementById('checkProgress').style.display = 'none';
-    }
-
-    function filterResults() {
-        var s = document.getElementById('resultSearch').value.toLowerCase();
-        var f = document.getElementById('resultFilter').value;
-        document.querySelectorAll('#quickResultsBody tr').forEach(function(row) {
-            var id = (row.cells[1] ? row.cells[1].textContent : '').toLowerCase();
-            var st = (row.cells[2] ? row.cells[2].textContent : '').toLowerCase();
-            var ms = !s || id.includes(s);
-            var mf = f === 'all' || (f === 'resolved' && /resolved|closed/.test(st)) || (f === 'open' && /open|assigned/.test(st)) || (f === 'pending' && /pending/.test(st));
-            row.style.display = (ms && mf) ? '' : 'none';
-        });
-    }
-
-    // ═══ RENDER ALL ═══
-    function renderAll() {
-        renderKPIs();
-        renderCharts();
-        renderAuditorGrid();
-        renderTicketTable();
-        renderProcessTable();
-        updateTime();
-    }
-
-    // ═══ KPIs ═══
-    function renderKPIs() {
-        var total = auditData.length;
-        var res = 0, opn = 0, pen = 0, checked = 0;
-        auditData.forEach(function(r) {
-            var c = statusCache[r.ticketId];
-            if (!c) return;
-            checked++;
-            var s = c.status.toLowerCase();
-            if (/resolved|closed/.test(s)) res++;
-            else if (/open|assigned/.test(s)) opn++;
-            else if (/pending/.test(s)) pen++;
-        });
-        var auditors = new Set(auditData.map(function(r) { return r.auditor; })).size;
-        document.getElementById('kTotal').textContent = total;
-        document.getElementById('kResolved').textContent = res;
-        document.getElementById('kOpen').textContent = opn;
-        document.getElementById('kPending').textContent = pen;
-        document.getElementById('kAuditors').textContent = auditors;
-        document.getElementById('kRate').textContent = checked > 0 ? Math.round(res / checked * 100) + '%' : '—';
-    }
-
-    // ═══ CHARTS ═══
-    function renderCharts() {
-        var r = 0, o = 0, p = 0, u = 0;
-        auditData.forEach(function(item) {
-            var c = statusCache[item.ticketId];
-            if (!c) { u++; return; }
-            var s = c.status.toLowerCase();
-            if (/resolved|closed/.test(s)) r++;
-            else if (/open|assigned/.test(s)) o++;
-            else if (/pending/.test(s)) p++;
-            else u++;
-        });
-        if (chartInstances.s) chartInstances.s.destroy();
-        chartInstances.s = new Chart(document.getElementById('chartStatus'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Resolved', 'Open', 'Pending', 'Unchecked'],
-                datasets: [{ data: [r, o, p, u], backgroundColor: ['#00e68a', '#fbbf24', '#a78bfa', '#4b5563'], borderWidth: 0 }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
-        });
-
-        var pm = {};
-        auditData.forEach(function(r) { if (r.process) pm[r.process] = (pm[r.process] || 0) + 1; });
-        if (chartInstances.p) chartInstances.p.destroy();
-        chartInstances.p = new Chart(document.getElementById('chartProcess'), {
-            type: 'bar',
-            data: { labels: Object.keys(pm), datasets: [{ data: Object.values(pm), backgroundColor: '#00d4ff' }] },
-            options: {
-                responsive: true, indexAxis: 'y',
-                scales: { x: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } }, y: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { display: false } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        var am = {};
-        auditData.forEach(function(r) {
-            if (!am[r.auditor]) am[r.auditor] = { t: 0, r: 0 };
-            am[r.auditor].t++;
-            var c = statusCache[r.ticketId];
-            if (c && /resolved|closed/.test(c.status.toLowerCase())) am[r.auditor].r++;
-        });
-        var sorted = Object.entries(am).sort(function(a, b) { return b[1].t - a[1].t; }).slice(0, 12);
-        if (chartInstances.a) chartInstances.a.destroy();
-        chartInstances.a = new Chart(document.getElementById('chartAuditor'), {
-            type: 'bar',
-            data: {
-                labels: sorted.map(function(e) { return e[0]; }),
-                datasets: [
-                    { label: 'Total', data: sorted.map(function(e) { return e[1].t; }), backgroundColor: 'rgba(0,212,255,.4)' },
-                    { label: 'Resolved', data: sorted.map(function(e) { return e[1].r; }), backgroundColor: '#00e68a' }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: { x: { ticks: { color: '#8892b0', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#8892b0' }, grid: { color: 'rgba(100,120,200,.1)' } } },
-                plugins: { legend: { labels: { color: '#8892b0' } } }
-            }
-        });
-
-        var bm = {};
-        auditData.forEach(function(r) { if (r.bucket) bm[r.bucket] = (bm[r.bucket] || 0) + 1; });
-        if (chartInstances.b) chartInstances.b.destroy();
-        chartInstances.b = new Chart(document.getElementById('chartBucket'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(bm),
-                datasets: [{ data: Object.values(bm), backgroundColor: ['#00d4ff', '#a78bfa', '#fb923c', '#00e68a', '#ff5757'], borderWidth: 0 }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#8892b0' } } } }
-        });
-    }
-
-    // ═══ PROCESS TABLE ═══
-    function renderProcessTable() {
-        var m = {};
-        auditData.forEach(function(r) {
-            if (!r.process) return;
-            if (!m[r.process]) m[r.process] = { t: 0, r: 0, o: 0, p: 0 };
-            m[r.process].t++;
-            var c = statusCache[r.ticketId];
-            if (!c) return;
-            var s = c.status.toLowerCase();
-            if (/resolved|closed/.test(s)) m[r.process].r++;
-            else if (/open|assigned/.test(s)) m[r.process].o++;
-            else if (/pending/.test(s)) m[r.process].p++;
-        });
-        document.getElementById('processTableBody').innerHTML = Object.entries(m)
-            .sort(function(a, b) { return b[1].t - a[1].t; })
-            .map(function(e) {
-                var rate = e[1].t > 0 ? Math.round(e[1].r / e[1].t * 100) : 0;
-                return '<tr><td>' + e[0] + '</td><td>' + e[1].t + '</td><td style="color:var(--green)">' + e[1].r + '</td><td style="color:var(--yellow)">' + e[1].o + '</td><td style="color:var(--purple)">' + e[1].p + '</td><td>' + rate + '%</td></tr>';
-            }).join('');
-    }
-
-    // ═══ AUDITOR GRID ═══
-    function renderAuditorGrid() {
-        var pf = (document.getElementById('auditorProcessFilter') || {}).value || 'all';
-        var data = pf === 'all' ? auditData : auditData.filter(function(r) { return r.process === pf; });
-        var m = {};
-        data.forEach(function(r) {
-            if (!m[r.auditor]) m[r.auditor] = { procs: new Set(), t: 0, r: 0 };
-            m[r.auditor].procs.add(r.process);
-            m[r.auditor].t++;
-            var c = statusCache[r.ticketId];
-            if (c && /resolved|closed/.test(c.status.toLowerCase())) m[r.auditor].r++;
-        });
-        document.getElementById('auditorGrid').innerHTML = Object.entries(m)
-            .sort(function(a, b) { return b[1].t - a[1].t; })
-            .map(function(e) {
-                var n = e[0], d = e[1];
-                var rate = d.t > 0 ? Math.round(d.r / d.t * 100) : 0;
-                return '<div class="auditor-card">' +
-                    '<div class="auditor-name">👤 ' + n + '</div>' +
-                    '<div class="auditor-process">' + Array.from(d.procs).join(', ') + '</div>' +
-                    '<div class="auditor-metrics">' +
-                        '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--accent)">' + d.t + '</div><div class="auditor-metric-lbl">Total</div></div>' +
-                        '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--green)">' + d.r + '</div><div class="auditor-metric-lbl">Resolved</div></div>' +
-                        '<div class="auditor-metric"><div class="auditor-metric-val" style="color:var(--yellow)">' + (d.t - d.r) + '</div><div class="auditor-metric-lbl">Open</div></div>' +
-                    '</div>' +
-                    '<div class="auditor-bar"><div class="auditor-bar-track"><div class="auditor-bar-fill" style="width:' + rate + '%"></div></div><div class="auditor-bar-label">' + rate + '% resolved</div></div>' +
-                '</div>';
-            }).join('');
-    }
-
-    // ═══ ALL TICKETS TABLE ═══
-    function renderTicketTable() {
-        var search = (document.getElementById('ticketSearch') || { value: '' }).value.toLowerCase();
-        var pf = (document.getElementById('ticketProcessFilter') || { value: 'all' }).value;
-        var af = (document.getElementById('ticketAuditorFilter') || { value: 'all' }).value;
-        var sf = (document.getElementById('ticketStatusFilter') || { value: 'all' }).value;
-
-        var filtered = auditData.slice();
-        if (pf !== 'all') filtered = filtered.filter(function(r) { return r.process === pf; });
-        if (af !== 'all') filtered = filtered.filter(function(r) { return r.auditor === af; });
-        if (search) filtered = filtered.filter(function(r) {
-            return r.ticketId.toLowerCase().includes(search) || r.auditor.toLowerCase().includes(search);
-        });
-        if (sf !== 'all') {
-            filtered = filtered.filter(function(r) {
-                var c = statusCache[r.ticketId];
-                if (!c) return sf === 'unchecked';
-                var s = c.status.toLowerCase();
-                if (sf === 'resolved') return /resolved|closed/.test(s);
-                if (sf === 'open') return /open|assigned/.test(s);
-                if (sf === 'pending') return /pending/.test(s);
-                return false;
-            });
-        }
-
-        var tbody = document.getElementById('ticketTableBody');
-        tbody.innerHTML = filtered.slice(0, 500).map(function(r, i) {
-            var c = statusCache[r.ticketId];
-            var st = c ? c.status : 'Not Checked';
-            var ts = c && c.ts ? new Date(c.ts).toLocaleTimeString() : '—';
-            return '<tr><td>' + (i + 1) + '</td>' +
-                '<td><a href="' + CONFIG.TICKET_BASE + r.ticketId + '" target="_blank" class="link-tt">' + r.ticketId + '</a></td>' +
-                '<td>' + r.auditor + '</td>' +
-                '<td>' + r.process + '</td>' +
-                '<td>' + r.bucket + '</td>' +
-                '<td><span class="badge ' + bclass(st) + '">' + bicon(st) + ' ' + st + '</span></td>' +
-                '<td>' + ts + '</td></tr>';
-        }).join('');
-
-        if (filtered.length > 500) {
-            tbody.innerHTML += '<tr><td colspan="7" style="text-align:center;color:var(--dim)">Showing 500 of ' + filtered.length + ' — use filters to narrow</td></tr>';
-        }
-    }
-
-    // ═══ POPULATE FILTERS ═══
-    function populateFilters() {
-        var procs = [];
-        var auds = [];
-        auditData.forEach(function(r) {
-            if (r.process && procs.indexOf(r.process) === -1) procs.push(r.process);
-            if (r.auditor && auds.indexOf(r.auditor) === -1) auds.push(r.auditor);
-        });
-        procs.sort();
-        auds.sort();
-
-        var procHTML = '<option value="all">All Processes</option>' + procs.map(function(p) { return '<option value="' + p + '">' + p + '</option>'; }).join('');
-        var audHTML = '<option value="all">All Auditors</option>' + auds.map(function(a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
-
-        ['ticketProcessFilter', 'auditorProcessFilter'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) el.innerHTML = procHTML;
-        });
-        var afEl = document.getElementById('ticketAuditorFilter');
-        if (afEl) afEl.innerHTML = audHTML;
-    }
-
-    // ═══ HELPERS ═══
-    function bclass(s) {
-        s = (s || '').toLowerCase();
-        if (/resolved|closed/.test(s)) return 'badge-resolved';
-        if (/open|assigned/.test(s)) return 'badge-open';
-        if (/pending/.test(s)) return 'badge-pending';
-        if (/error|auth|fetch/.test(s)) return 'badge-error';
-        return 'badge-unknown';
-    }
-
-    function bicon(s) {
-        s = (s || '').toLowerCase();
-        if (/resolved|closed/.test(s)) return '✅';
-        if (/open|assigned/.test(s)) return '🟡';
-        if (/pending/.test(s)) return '🟣';
-        if (/error|auth|fetch/.test(s)) return '🔴';
-        return '⚪';
-    }
-
-    function toast(msg) {
-        var t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(function() { t.classList.remove('show'); }, 4000);
-    }
-
-    function updateTime() {
-        document.getElementById('refreshTime').textContent = 'Updated: ' + new Date().toLocaleTimeString();
-    }
-
-    function sleep(ms) {
-        return new Promise(function(resolve) { setTimeout(resolve, ms); });
-    }
-
-    // ═══ CACHE (localStorage) ═══
-    function saveToCache(id, data) {
-        statusCache[id] = data;
-        try { localStorage.setItem('tp_cache', JSON.stringify(statusCache)); } catch (e) {}
-        return data;
-    }
-
-    function getFromCache(id) {
-        var c = statusCache[id];
-        if (!c) return null;
-        if ((Date.now() - c.ts) > CONFIG.CACHE_MIN * 60000) {
-            delete statusCache[id];
-            return null;
-        }
-        return c;
-    }
-
-    function loadCache() {
-        try {
-            var raw = localStorage.getItem('tp_cache');
-            if (raw) statusCache = JSON.parse(raw);
-            var cutoff = Date.now() - CONFIG.CACHE_MIN * 60000;
-            Object.keys(statusCache).forEach(function(k) {
-                if (statusCache[k].ts < cutoff) delete statusCache[k];
-            });
-        } catch (e) { statusCache = {}; }
-    }
-
-    // ═══ EXPORT CSV ═══
-    function exportCSV() {
-        if (!auditData.length) return toast('⚠️ No data');
-        var lines = ['Ticket ID,Auditor,Process,Bucket,Status,Checked At'];
-        auditData.forEach(function(r) {
-            var c = statusCache[r.ticketId] || { status: 'Not Checked', ts: '' };
-            var ts = c.ts ? new Date(c.ts).toISOString() : '';
-            lines.push(r.ticketId + ',' + r.auditor + ',"' + r.process + '",' + r.bucket + ',' + c.status + ',' + ts);
-        });
-        var csv = lines.join('\n');
-        var blob = new Blob([csv], { type: 'text/csv' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'ticket_pulse_export_' + new Date().toISOString().slice(0, 10) + '.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast('📥 CSV exported!');
-    }
-
-    // ═══ EXPOSE FUNCTIONS TO GLOBAL SCOPE ═══
-    window.runQuickCheck = runQuickCheck;
-    window.checkAllTickets = checkAllTickets;
-    window.loadSheetIDs = loadSheetIDs;
-    window.clearChecker = clearChecker;
-    window.filterResults = filterResults;
-    window.renderAuditorGrid = renderAuditorGrid;
-    window.renderTicketTable = renderTicketTable;
-    window.exportCSV = exportCSV;
-
-})();
+// Load on open
+window.addEventListener('DOMContentLoaded', loadData);
 </script>
 </body>
 </html>
-
